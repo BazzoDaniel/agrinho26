@@ -157,26 +157,112 @@ btnEntrar.addEventListener('click', () => {
     // BOTÃO REINICIAR
     document.getElementById('btn-reiniciar').addEventListener('click', () => {
 
-        // REMOVE O VENCEDOR
-        set(ref(db, 'partida/vencedor'), null);
+    // LIMPA O CLIMA ANTIGO
+    set(ref(db, 'partida/eventoAtual'), null);
 
-        // DEFINE NOVO TURNO
-        set(ref(db, 'partida/turnoAtual'), playerId);
+    // RESETA O CONTROLE LOCAL
+    window.ultimaRodadaEfeito = null;
 
-        // RESETA STATUS LOCAIS
-        meusPontos = 0;
-        meuSolo = 100;
-        minhasSementes = 100;
-        jaPlantou = false;
+    // REMOVE O VENCEDOR
+    set(ref(db, 'partida/vencedor'), null);
 
-        // ATUALIZA TELA
-        txtSolo.innerText = meuSolo + "%";
-        txtSementes.innerText = minhasSementes + " sementes";
+    // DEFINE NOVO TURNO
+    set(ref(db, 'partida/turnoAtual'), playerId);
 
-        // SALVA NO FIREBASE
-        salvarDadosNoFirebase();
+    // RESETA STATUS LOCAIS
+    meusPontos = 0;
+    meuSolo = 100;
+    minhasSementes = 100;
+    jaPlantou = false;
 
-        alert("🔄 Nova partida iniciada!");
+    // ATUALIZA TELA
+    txtSolo.innerText = meuSolo + "%";
+    txtSementes.innerText = minhasSementes + " sementes";
+
+    // SALVA NO FIREBASE
+    salvarDadosNoFirebase();
+
+    alert("🔄 Nova partida iniciada!");
+
+});
+
+        // 4. OUVIR AS MUDANÇAS CLIMÁTICAS
+    const climaRef = ref(db, 'partida/eventoAtual');
+
+    onValue(climaRef, (snapshot) => {
+
+        const evento = snapshot.val();
+
+        const txtClima = document.getElementById('clima-atual');
+
+        // CASO NÃO EXISTA EVENTO
+        if (!evento) {
+
+            txtClima.innerText =
+                "🌤️ Clima: Tempo Limpo";
+
+            return;
+        }
+
+        // MOSTRA O EVENTO PARA TODOS
+        txtClima.innerText =
+            `${evento.icone} Clima: ${evento.nome} (${evento.descricao})`;
+
+        // EVITA APLICAR O MESMO EVENTO VÁRIAS VEZES
+        if (evento.idRodada !== window.ultimaRodadaEfeito) {
+
+            window.ultimaRodadaEfeito = evento.idRodada;
+
+            // SECA
+            if (evento.tipo === 'seca') {
+
+                minhasSementes =
+                    Math.max(0, minhasSementes - 10);
+
+                alert(
+                    `🔥 A Seca severa queimou parte das suas reservas! Você perdeu 10 sementes.`
+                );
+            }
+
+            // CHUVA
+            else if (evento.tipo === 'chuva') {
+
+                meuSolo =
+                    Math.min(100, meuSolo + 15);
+
+                alert(
+                    `🌧️ Chuva na hora certa! Seu solo recuperou 15% de umidade e saúde.`
+                );
+            }
+
+            // PRAGAS
+            else if (evento.tipo === 'praga') {
+
+                if (meuSolo < 70) {
+
+                    meuSolo =
+                        Math.max(0, meuSolo - 20);
+
+                    alert(
+                        `🐛 Infestação de Pragas! Como seu solo estava fraco ou degradado, sua fazenda sofreu muito. Solo -20%`
+                    );
+
+                } else {
+
+                    alert(
+                        `🐛 Infestação de Pragas! Como seu solo está forte e protegido (Plantio Direto), sua fazenda resistiu perfeitamente!`
+                    );
+                }
+            }
+
+            // ATUALIZA VISUAL
+            txtSolo.innerText = meuSolo + "%";
+            txtSementes.innerText =
+                minhasSementes + " sementes";
+
+            // SALVA NO FIREBASE
+            salvarDadosNoFirebase();
+        }
 
     });
 
@@ -262,15 +348,77 @@ function salvarDadosNoFirebase() {
 }
 
 function passarTurno() {
+
+    // EVENTOS CLIMÁTICOS
+    const eventosPossiveis = [
+
+        {
+            nome: "Tempo Limpo",
+            icone: "🌤️",
+            descricao: "Condições ideais para o manejo.",
+            tipo: "normal"
+        },
+
+        {
+            nome: "Seca Prolongada",
+            icone: "🔥",
+            descricao: "O calor consome recursos. Todos perdem 10 sementes.",
+            tipo: "seca"
+        },
+
+        {
+            nome: "Chuva Abençoada",
+            icone: "🌧️",
+            descricao: "A umidade ajuda o solo. Todos recuperam 15% de saúde da terra.",
+            tipo: "chuva"
+        },
+
+        {
+            nome: "Ataque de Pragas",
+            icone: "🐛",
+            descricao: "Solos degradados (abaixo de 70%) sofrem quebra e perdem 20% de saúde.",
+            tipo: "praga"
+        }
+
+    ];
+
+    // SORTEIA UM EVENTO
+    const eventoSorteado =
+        eventosPossiveis[
+            Math.floor(Math.random() * eventosPossiveis.length)
+        ];
+
+    // ID ÚNICO DA RODADA
+    eventoSorteado.idRodada = Date.now();
+
+    // ENVIA PARA O FIREBASE
+    set(
+        ref(db, 'partida/eventoAtual'),
+        eventoSorteado
+    );
+
+    // TROCA O TURNO
     const todosJogadoresRef = ref(db, 'jogadores/');
+
     onValue(todosJogadoresRef, (snapshot) => {
+
         const lista = snapshot.val();
+
         if (!lista) return;
-        
+
         const ids = Object.keys(lista);
-        let proximoIndex = (ids.indexOf(playerId) + 1) % ids.length;
-        const proximoJogadorId = ids[proximoIndex];
-        
-        set(ref(db, 'partida/turnoAtual'), proximoJogadorId);
+
+        let proximoIndex =
+            (ids.indexOf(playerId) + 1) % ids.length;
+
+        const proximoJogadorId =
+            ids[proximoIndex];
+
+        set(
+            ref(db, 'partida/turnoAtual'),
+            proximoJogadorId
+        );
+
     }, { onlyOnce: true });
+
 }

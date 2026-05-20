@@ -1,79 +1,137 @@
+Aqui está seu `index.html` já modificado corretamente com a linha do clima adicionada abaixo do status no `painel-superior`.
+
+Substitua seu arquivo inteiro por este:
+
+```html id="vjggu6"
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo do Agrinho 2026</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
     <div id="game-container">
+
         <h1>Missão Agrinho 2026 🌾</h1>
-        
+
+        <!-- LOBBY -->
         <div id="lobby">
-            <input type="text" id="player-name" placeholder="Seu nome do produtor">
-            <button id="btn-entrar">Entrar na Fazenda</button>
+            <input type="text"
+                   id="player-name"
+                   placeholder="Seu nome do produtor">
+
+            <button id="btn-entrar">
+                Entrar na Fazenda
+            </button>
         </div>
-        
+
+        <!-- TABULEIRO -->
         <div id="game-board" class="hidden">
+
+            <!-- PAINEL SUPERIOR -->
             <div id="painel-superior">
-                <p id="status">Aguardando jogadores...</p>
+
+                <p id="status">
+                    Aguardando jogadores...
+                </p>
+
+                <!-- NOVO SISTEMA DE CLIMA -->
+                <p id="clima-atual"
+                   style="font-size: 18px;
+                          font-weight: bold;
+                          color: #0288d1;
+                          margin-top: 5px;">
+
+                    🌤️ Clima: Tempo Limpo
+
+                </p>
+
                 <div id="jogadores-conectados"></div>
+
             </div>
-            
+
             <hr>
 
+            <!-- TABULEIRO -->
             <div id="tabuleiro-container">
+
+                <!-- INFORMAÇÕES -->
                 <div id="info-fazenda">
+
                     <h3>Sua Fazenda 🌾</h3>
-                    <p>Status do Solo: <span id="status-solo">100%</span></p>
-                    <p>Recursos: <span id="recursos-moedas">100 sementes</span></p>
+
+                    <p>
+                        Status do Solo:
+                        <span id="status-solo">100%</span>
+                    </p>
+
+                    <p>
+                        Recursos:
+                        <span id="recursos-moedas">100 sementes</span>
+                    </p>
+
                 </div>
 
+                <!-- AÇÕES -->
                 <div id="Painel-Acoes">
-    <h3>Sua Vez! Escolha uma ação sustentável:</h3>
 
-    <button id="btn-plantar" class="btn-acao">
-        🌱 Plantar Direto (Ganha solo, gasta 20)
-    </button>
+                    <h3>
+                        Sua Vez! Escolha uma ação sustentável:
+                    </h3>
 
-    <button id="btn-Agrotoxico" class="btn-acao">
-        ⚠️ Usar Defensivo Comum (Gasta solo, gasta 10)
-    </button>
+                    <button id="btn-plantar" class="btn-acao">
+                        🌱 Plantar Direto (Ganha solo, gasta 20)
+                    </button>
 
-    <button id="btn-colher" class="btn-acao">
-        🚜 Colher Safra (Ganha pontos se plantou)
-    </button>
-</div>
+                    <button id="btn-Agrotoxico" class="btn-acao">
+                        ⚠️ Usar Defensivo Comum (Gasta solo, gasta 10)
+                    </button>
 
-<!-- TELA DE FIM DE JOGO -->
-<div id="tela-fim-jogo"
-     class="hidden"
-     style="background-color: #fff3e0;
-            border: 3px solid #ffb74d;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;">
+                    <button id="btn-colher" class="btn-acao">
+                        🚜 Colher Safra (Ganha pontos se plantou)
+                    </button>
 
-    <h2 style="color: #e65100;">
-        🎉 Temos um Vencedor! 🎉
-    </h2>
+                </div>
 
-    <p id="texto-vencedor"
-       style="font-size: 20px;
-              font-weight: bold;">
-    </p>
+                <!-- TELA DE FIM DE JOGO -->
+                <div id="tela-fim-jogo"
+                     class="hidden"
+                     style="background-color: #fff3e0;
+                            border: 3px solid #ffb74d;
+                            padding: 20px;
+                            border-radius: 12px;
+                            margin-top: 20px;">
 
-    <button id="btn-reiniciar"
-            class="btn-acao"
-            style="background-color: #ff9800;">
-        Jogar Novamente 🔄
-    </button>
-</div>
+                    <h2 style="color: #e65100;">
+                        🎉 Temos um Vencedor! 🎉
+                    </h2>
+
+                    <p id="texto-vencedor"
+                       style="font-size: 20px;
+                              font-weight: bold;">
+                    </p>
+
+                    <button id="btn-reiniciar"
+                            class="btn-acao"
+                            style="background-color: #ff9800;">
+
+                        Jogar Novamente 🔄
+
+                    </button>
+
+                </div>
+
             </div>
         </div>
     </div>
 
     <script type="module" src="game.js"></script>
-    </body>
+
+</body>
 </html>
+```
