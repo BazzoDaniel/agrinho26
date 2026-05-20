@@ -14,7 +14,6 @@
 
         <h1>Missão Agrinho 2026 🌾</h1>
 
-        <!-- LOBBY -->
         <div id="lobby">
             <input type="text"
                    id="player-name"
@@ -25,25 +24,20 @@
             </button>
         </div>
 
-        <!-- TABULEIRO -->
         <div id="game-board" class="hidden">
 
-            <!-- PAINEL SUPERIOR -->
             <div id="painel-superior">
 
                 <p id="status">
                     Aguardando jogadores...
                 </p>
 
-                <!-- NOVO SISTEMA DE CLIMA -->
                 <p id="clima-atual"
                    style="font-size: 18px;
                           font-weight: bold;
                           color: #0288d1;
                           margin-top: 5px;">
-
                     🌤️ Clima: Tempo Limpo
-
                 </p>
 
                 <div id="jogadores-conectados"></div>
@@ -52,10 +46,8 @@
 
             <hr>
 
-            <!-- TABULEIRO -->
             <div id="tabuleiro-container">
 
-                <!-- INFORMAÇÕES -->
                 <div id="info-fazenda">
 
                     <h3>Sua Fazenda 🌾</h3>
@@ -72,7 +64,6 @@
 
                 </div>
 
-                <!-- AÇÕES -->
                 <div id="Painel-Acoes">
 
                     <h3>
@@ -80,20 +71,19 @@
                     </h3>
 
                     <button id="btn-plantar" class="btn-acao">
-                        🌱 Plantar Direto (Ganha solo, gasta 20)
+                        🌱 Plantio Direto (Usa 20 sementes)
                     </button>
 
                     <button id="btn-Agrotoxico" class="btn-acao">
-                        ⚠️ Usar Defensivo Comum (Gasta solo, gasta 10)
+                        ⚠️ Defensivo Comum (Usa 10 sementes | Solo -20%)
                     </button>
 
                     <button id="btn-colher" class="btn-acao">
-                        🚜 Colher Safra (Ganha pontos se plantou)
+                        🚜 Colher Safra (Ganha 50 pontos e +40 sementes)
                     </button>
 
                 </div>
 
-                <!-- TELA DE FIM DE JOGO -->
                 <div id="tela-fim-jogo"
                      class="hidden"
                      style="background-color: #fff3e0;
@@ -114,9 +104,7 @@
                     <button id="btn-reiniciar"
                             class="btn-acao"
                             style="background-color: #ff9800;">
-
                         Jogar Novamente 🔄
-
                     </button>
 
                 </div>
@@ -129,4 +117,3 @@
 
 </body>
 </html>
-```

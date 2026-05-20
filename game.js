@@ -115,11 +115,10 @@ btnEntrar.addEventListener('click', () => {
         }, { onlyOnce: true });
     });
 
-        // 3. OUVIR O VENCEDOR DA PARTIDA
+    // 3. OUVIR O VENCEDOR DA PARTIDA
     const vencedorRef = ref(db, 'partida/vencedor');
 
     onValue(vencedorRef, (snapshot) => {
-
         const vencedor = snapshot.val();
 
         const painelAcoes = document.getElementById('Painel-Acoes');
@@ -128,10 +127,8 @@ btnEntrar.addEventListener('click', () => {
         const statusTexto = document.getElementById('status');
 
         if (vencedor) {
-
             // ENCERRA O JOGO
             minhaVez = false;
-
             statusTexto.innerText = "🏁 Partida Encerrada!";
 
             // ESCONDE AÇÕES
@@ -143,129 +140,93 @@ btnEntrar.addEventListener('click', () => {
             // TEXTO DO VENCEDOR
             textoVencedor.innerText =
                 `O Produtor ${vencedor} alcançou a meta de sustentabilidade e venceu a partida! 🌾🚜`;
-
         } else {
-
             // REINICIA VISUALMENTE
             painelAcoes.classList.remove('hidden');
             telaFimJogo.classList.add('hidden');
-
         }
-
     });
 
     // BOTÃO REINICIAR
     document.getElementById('btn-reiniciar').addEventListener('click', () => {
+        // LIMPA O CLIMA ANTIGO
+        set(ref(db, 'partida/eventoAtual'), null);
 
-    // LIMPA O CLIMA ANTIGO
-    set(ref(db, 'partida/eventoAtual'), null);
+        // RESETA O CONTROLE LOCAL
+        window.ultimaRodadaEfeito = null;
 
-    // RESETA O CONTROLE LOCAL
-    window.ultimaRodadaEfeito = null;
+        // REMOVE O VENCEDOR
+        set(ref(db, 'partida/vencedor'), null);
 
-    // REMOVE O VENCEDOR
-    set(ref(db, 'partida/vencedor'), null);
+        // DEFINE NOVO TURNO
+        set(ref(db, 'partida/turnoAtual'), playerId);
 
-    // DEFINE NOVO TURNO
-    set(ref(db, 'partida/turnoAtual'), playerId);
+        // RESETA STATUS LOCAIS
+        meusPontos = 0;
+        meuSolo = 100;
+        minhasSementes = 100;
+        jaPlantou = false;
 
-    // RESETA STATUS LOCAIS
-    meusPontos = 0;
-    meuSolo = 100;
-    minhasSementes = 100;
-    jaPlantou = false;
+        // ATUALIZA TELA
+        txtSolo.innerText = meuSolo + "%";
+        txtSementes.innerText = minhasSementes + " sementes";
 
-    // ATUALIZA TELA
-    txtSolo.innerText = meuSolo + "%";
-    txtSementes.innerText = minhasSementes + " sementes";
+        // SALVA NO FIREBASE
+        salvarDadosNoFirebase();
 
-    // SALVA NO FIREBASE
-    salvarDadosNoFirebase();
+        alert("🔄 Nova partida iniciada!");
+    });
 
-    alert("🔄 Nova partida iniciada!");
-
-});
-
-        // 4. OUVIR AS MUDANÇAS CLIMÁTICAS
+    // 4. OUVIR AS MUDANÇAS CLIMÁTICAS
     const climaRef = ref(db, 'partida/eventoAtual');
 
     onValue(climaRef, (snapshot) => {
-
         const evento = snapshot.val();
-
         const txtClima = document.getElementById('clima-atual');
 
         // CASO NÃO EXISTA EVENTO
         if (!evento) {
-
-            txtClima.innerText =
-                "🌤️ Clima: Tempo Limpo";
-
+            txtClima.innerText = "🌤️ Clima: Tempo Limpo";
             return;
         }
 
         // MOSTRA O EVENTO PARA TODOS
-        txtClima.innerText =
-            `${evento.icone} Clima: ${evento.nome} (${evento.descricao})`;
+        txtClima.innerText = `${evento.icone} Clima: ${evento.nome} (${evento.descricao})`;
 
         // EVITA APLICAR O MESMO EVENTO VÁRIAS VEZES
         if (evento.idRodada !== window.ultimaRodadaEfeito) {
-
             window.ultimaRodadaEfeito = evento.idRodada;
 
             // SECA
             if (evento.tipo === 'seca') {
-
-                minhasSementes =
-                    Math.max(0, minhasSementes - 10);
-
-                alert(
-                    `🔥 A Seca severa queimou parte das suas reservas! Você perdeu 10 sementes.`
-                );
+                minhasSementes = Math.max(0, minhasSementes - 10);
+                alert(`🔥 A Seca severa queimou parte das suas reservas! Você perdeu 10 sementes.`);
             }
 
             // CHUVA
             else if (evento.tipo === 'chuva') {
-
-                meuSolo =
-                    Math.min(100, meuSolo + 15);
-
-                alert(
-                    `🌧️ Chuva na hora certa! Seu solo recuperou 15% de umidade e saúde.`
-                );
+                meuSolo = Math.min(100, meuSolo + 15);
+                alert(`🌧️ Chuva na hora certa! Seu solo recuperou 15% de umidade e saúde.`);
             }
 
             // PRAGAS
             else if (evento.tipo === 'praga') {
-
                 if (meuSolo < 70) {
-
-                    meuSolo =
-                        Math.max(0, meuSolo - 20);
-
-                    alert(
-                        `🐛 Infestação de Pragas! Como seu solo estava fraco ou degradado, sua fazenda sofreu muito. Solo -20%`
-                    );
-
+                    meuSolo = Math.max(0, meuSolo - 20);
+                    alert(`🐛 Infestação de Pragas! Como seu solo estava fraco ou degradado, sua fazenda sofreu muito. Solo -20%`);
                 } else {
-
-                    alert(
-                        `🐛 Infestação de Pragas! Como seu solo está forte e protegido (Plantio Direto), sua fazenda resistiu perfeitamente!`
-                    );
+                    alert(`🐛 Infestação de Pragas! Como seu solo está forte e protegido (Plantio Direto), sua fazenda resistiu perfeitamente!`);
                 }
             }
 
             // ATUALIZA VISUAL
             txtSolo.innerText = meuSolo + "%";
-            txtSementes.innerText =
-                minhasSementes + " sementes";
+            txtSementes.innerText = minhasSementes + " sementes";
 
             // SALVA NO FIREBASE
             salvarDadosNoFirebase();
         }
-
     });
-
 });
 
 // --- AÇÕES DO TABULEIRO ---
@@ -310,26 +271,22 @@ document.getElementById('btn-colher').addEventListener('click', () => {
     if (!minhaVez) return;
 
     if (jaPlantou) {
-
         meusPontos += 50;
+        minhasSementes += 40; // MODIFICAÇÃO: O jogador recupera e lucra sementes na colheita!
         jaPlantou = false;
 
-        alert("Colheita de sucesso! Você ganhou 50 pontos.");
+        alert("🚜 Colheita de sucesso! Você ganhou 50 pontos e reabasteceu +40 sementes com o lucro da safra.");
+
+        // Atualiza a interface do jogador na hora
+        txtSementes.innerText = minhasSementes + " sementes";
 
         // VERIFICA SE O JOGADOR VENCEU
         if (meusPontos >= 200) {
-
             // SALVA O VENCEDOR NO FIREBASE
-            set(
-                ref(db, 'partida/vencedor'),
-                inputNome.value.trim()
-            );
+            set(ref(db, 'partida/vencedor'), inputNome.value.trim());
         }
-
     } else {
-
         alert("Você precisa plantar antes de colher!");
-
     }
 
     salvarDadosNoFirebase();
@@ -348,77 +305,54 @@ function salvarDadosNoFirebase() {
 }
 
 function passarTurno() {
-
     // EVENTOS CLIMÁTICOS
     const eventosPossiveis = [
-
         {
             nome: "Tempo Limpo",
             icone: "🌤️",
             descricao: "Condições ideais para o manejo.",
             tipo: "normal"
         },
-
         {
             nome: "Seca Prolongada",
             icone: "🔥",
             descricao: "O calor consome recursos. Todos perdem 10 sementes.",
             tipo: "seca"
         },
-
         {
             nome: "Chuva Abençoada",
             icone: "🌧️",
             descricao: "A umidade ajuda o solo. Todos recuperam 15% de saúde da terra.",
             tipo: "chuva"
         },
-
         {
             nome: "Ataque de Pragas",
             icone: "🐛",
             descricao: "Solos degradados (abaixo de 70%) sofrem quebra e perdem 20% de saúde.",
             tipo: "praga"
         }
-
     ];
 
     // SORTEIA UM EVENTO
-    const eventoSorteado =
-        eventosPossiveis[
-            Math.floor(Math.random() * eventosPossiveis.length)
-        ];
+    const eventoSorteado = eventosPossiveis[Math.floor(Math.random() * eventosPossiveis.length)];
 
     // ID ÚNICO DA RODADA
     eventoSorteado.idRodada = Date.now();
 
     // ENVIA PARA O FIREBASE
-    set(
-        ref(db, 'partida/eventoAtual'),
-        eventoSorteado
-    );
+    set(ref(db, 'partida/eventoAtual'), eventoSorteado);
 
     // TROCA O TURNO
     const todosJogadoresRef = ref(db, 'jogadores/');
 
     onValue(todosJogadoresRef, (snapshot) => {
-
         const lista = snapshot.val();
-
         if (!lista) return;
 
         const ids = Object.keys(lista);
+        let proximoIndex = (ids.indexOf(playerId) + 1) % ids.length;
+        const proximoJogadorId = ids[proximoIndex];
 
-        let proximoIndex =
-            (ids.indexOf(playerId) + 1) % ids.length;
-
-        const proximoJogadorId =
-            ids[proximoIndex];
-
-        set(
-            ref(db, 'partida/turnoAtual'),
-            proximoJogadorId
-        );
-
+        set(ref(db, 'partida/turnoAtual'), proximoJogadorId);
     }, { onlyOnce: true });
-
 }
