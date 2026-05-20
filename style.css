@@ -1,0 +1,26 @@
+body {
+    background-color: #e8f5e9; /* Verde fazenda */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#game-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+#jogadores-conectados {
+    margin-top: 20px;
+    font-weight: bold;
+}
