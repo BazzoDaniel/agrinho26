@@ -22,7 +22,7 @@ const gameBoard = document.getElementById('game-board');
 const listaJogadores = document.getElementById('jogadores-conectados');
 const txtSolo = document.getElementById('status-solo');
 const txtSementes = document.getElementById('recursos-moedas');
-const txtFertilizantes = document.getElementById('recursos-fertilizantes'); // NOVO ELEMENTO
+const txtFertilizantes = document.getElementById('recursos-fertilizantes');
 
 // Estado do Jogador Atual
 let playerId = null;
@@ -31,7 +31,7 @@ let minhaVez = false;
 // Atributos iniciais da fazenda
 let meuSolo = 100;
 let minhasSementes = 100;
-let meusFertilizantes = 4; // NOVO ATRIBUTO: Estoque limitado
+let meusFertilizantes = 4;
 let meusPontos = 0;
 let jaPlantou = false;
 
@@ -210,7 +210,7 @@ document.getElementById('btn-plantar').addEventListener('click', () => {
     jaPlantou = true;
     
     txtSementes.innerText = minhasSementes + " sementes";
-    alert("Você usou o Plantio Direto! O solo continua saudável e protegido.");
+    alert("Você usou o Plantio Direto! O solo continua protegido.");
     
     salvarDadosNoFirebase();
     passarTurno();
@@ -233,13 +233,13 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     passarTurno();
 });
 
-// NOÇÃO DE AÇÃO: BOTÃO REFORÇAR FERTILIZANTE SUSTENTÁVEL
+// AÇÃO DE APLICAR BIOFERTILIZANTE SUSTENTÁVEL
 document.getElementById('btn-fertilizar').addEventListener('click', () => {
     if (!minhaVez) return;
     if (meusFertilizantes <= 0) return alert("Você não tem mais estoque de fertilizantes!");
 
     meusFertilizantes -= 1;
-    meuSolo = Math.min(100, meuSolo + 25); // Aumenta 25% do solo
+    meuSolo = Math.min(100, meuSolo + 25); 
 
     txtFertilizantes.innerText = meusFertilizantes;
     txtSolo.innerText = meuSolo + "%";
@@ -257,10 +257,16 @@ document.getElementById('btn-colher').addEventListener('click', () => {
         minhasSementes += 40; 
         jaPlantou = false;
 
-        alert("🚜 Colheita de sucesso! Você ganhou 50 pontos e reabasteceu +40 sementes com o lucro da safra.");
-        txtSementes.innerText = minhasSementes + " sementes";
+        // A colheita retira nutrientes e desgasta o solo em 2%
+        meuSolo = Math.max(0, meuSolo - 2); 
 
-        if (meusPontos >= 200) {
+        alert("🚜 Colheita de sucesso! Você ganhou 50 pontos e reabasteceu +40 sementes. O processo de colheita desgastou o solo em -2%.");
+        
+        txtSementes.innerText = minhasSementes + " sementes";
+        txtSolo.innerText = meuSolo + "%";
+
+        // CONFIGURAÇÃO ATUALIZADA: Vitória agora exige 300 pontos
+        if (meusPontos >= 300) {
             set(ref(db, 'partida/vencedor'), inputNome.value.trim());
         }
     } else {
@@ -291,14 +297,14 @@ function salvarDadosNoFirebase() {
 }
 
 function passarTurno() {
-    // O tempo passa: perde 5% de solo natural por rodada
-    meuSolo = Math.max(0, meuSolo - 5);
+    // O tempo passa e o solo perde 13% de resistência por turno
+    meuSolo = Math.max(0, meuSolo - 13);
     txtSolo.innerText = meuSolo + "%";
     
-    // REGRA DE INFESTAÇÃO POR TEMPO: Se o solo cair abaixo de 70%, perde a colheita!
+    // REGRA DE INFESTAÇÃO: Se o solo cair abaixo de 70%, perde a colheita!
     if (meuSolo < 70 && jaPlantou) {
         jaPlantou = false; 
-        alert("🐛 Infestação! Como a resistência do seu solo caiu abaixo de 70%, pragas invadiram a fazenda e você PERDEU a sua colheita!");
+        alert("🐛 Infestação! Como a resistência do seu solo caiu abaixo de 70% devido ao desgaste do tempo, pragas invadiram a fazenda e destruíram a colheita!");
     }
     
     checarDegradacaoSolo();
