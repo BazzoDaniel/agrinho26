@@ -114,6 +114,72 @@ btnEntrar.addEventListener('click', () => {
             }
         }, { onlyOnce: true });
     });
+
+        // 3. OUVIR O VENCEDOR DA PARTIDA
+    const vencedorRef = ref(db, 'partida/vencedor');
+
+    onValue(vencedorRef, (snapshot) => {
+
+        const vencedor = snapshot.val();
+
+        const painelAcoes = document.getElementById('Painel-Acoes');
+        const telaFimJogo = document.getElementById('tela-fim-jogo');
+        const textoVencedor = document.getElementById('texto-vencedor');
+        const statusTexto = document.getElementById('status');
+
+        if (vencedor) {
+
+            // ENCERRA O JOGO
+            minhaVez = false;
+
+            statusTexto.innerText = "🏁 Partida Encerrada!";
+
+            // ESCONDE AÇÕES
+            painelAcoes.classList.add('hidden');
+
+            // MOSTRA TELA FINAL
+            telaFimJogo.classList.remove('hidden');
+
+            // TEXTO DO VENCEDOR
+            textoVencedor.innerText =
+                `O Produtor ${vencedor} alcançou a meta de sustentabilidade e venceu a partida! 🌾🚜`;
+
+        } else {
+
+            // REINICIA VISUALMENTE
+            painelAcoes.classList.remove('hidden');
+            telaFimJogo.classList.add('hidden');
+
+        }
+
+    });
+
+    // BOTÃO REINICIAR
+    document.getElementById('btn-reiniciar').addEventListener('click', () => {
+
+        // REMOVE O VENCEDOR
+        set(ref(db, 'partida/vencedor'), null);
+
+        // DEFINE NOVO TURNO
+        set(ref(db, 'partida/turnoAtual'), playerId);
+
+        // RESETA STATUS LOCAIS
+        meusPontos = 0;
+        meuSolo = 100;
+        minhasSementes = 100;
+        jaPlantou = false;
+
+        // ATUALIZA TELA
+        txtSolo.innerText = meuSolo + "%";
+        txtSementes.innerText = minhasSementes + " sementes";
+
+        // SALVA NO FIREBASE
+        salvarDadosNoFirebase();
+
+        alert("🔄 Nova partida iniciada!");
+
+    });
+
 });
 
 // --- AÇÕES DO TABULEIRO ---
@@ -156,15 +222,30 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
 
 document.getElementById('btn-colher').addEventListener('click', () => {
     if (!minhaVez) return;
-    
+
     if (jaPlantou) {
+
         meusPontos += 50;
         jaPlantou = false;
+
         alert("Colheita de sucesso! Você ganhou 50 pontos.");
+
+        // VERIFICA SE O JOGADOR VENCEU
+        if (meusPontos >= 200) {
+
+            // SALVA O VENCEDOR NO FIREBASE
+            set(
+                ref(db, 'partida/vencedor'),
+                inputNome.value.trim()
+            );
+        }
+
     } else {
+
         alert("Você precisa plantar antes de colher!");
+
     }
-    
+
     salvarDadosNoFirebase();
     passarTurno();
 });
