@@ -41,7 +41,7 @@ btnEntrar.addEventListener('click', () => {
 
     const playerRef = ref(db, 'jogadores/' + playerId);
     
-    // CORREÇÃO: Salvando todos os atributos iniciais no Firebase
+    // Salvando todos os atributos iniciais no Firebase
     set(playerRef, {
         nome: nome,
         pontuacao: meusPontos,
@@ -51,6 +51,7 @@ btnEntrar.addEventListener('click', () => {
         online: true
     });
 
+    // Remove o jogador se ele desconectar ou fechar a aba
     onDisconnect(playerRef).remove();
 
     lobby.classList.add('hidden');
@@ -60,7 +61,7 @@ btnEntrar.addEventListener('click', () => {
     txtSolo.innerText = meuSolo + "%";
     txtSementes.innerText = minhasSementes + " sementes";
 
-    // --- ESCUTAS DO FIREBASE DESACOPLADAS (CORREÇÃO DO LOOP) ---
+    // --- ESCUTAS DO FIREBASE DESACOPLADAS ---
 
     // 1. Escuta a lista de jogadores e exibe o painel com os dados atualizados de cada um
     const todosJogadoresRef = ref(db, 'jogadores/');
@@ -79,28 +80,39 @@ btnEntrar.addEventListener('click', () => {
         }
     });
 
-    // 2. Escuta de quem é o turno na partida
+    // 2. Escuta de quem é o turno na partida com Validação Antitrava (CORREÇÃO)
     const turnoRef = ref(db, 'partida/turnoAtual');
     onValue(turnoRef, (snapshot) => {
         const jogadorDoTurno = snapshot.val();
-        
-        if (!jogadorDoTurno) {
-            set(ref(db, 'partida/turnoAtual'), playerId);
-            return;
-        }
-
         const statusTexto = document.getElementById('status');
         const botoes = document.querySelectorAll('.btn-acao');
 
-        if (jogadorDoTurno === playerId) {
-            minhaVez = true;
-            statusTexto.innerText = "🟢 É a sua vez de cuidar da fazenda!";
-            botoes.forEach(b => b.disabled = false);
-        } else {
-            minhaVez = false;
-            statusTexto.innerText = "⏳ Outro produtor está jogando...";
-            botoes.forEach(b => b.disabled = true);
-        }
+        // Puxa a lista de jogadores online para verificar se o dono do turno sumiu
+        const listaChecagemRef = ref(db, 'jogadores/');
+        onValue(listaChecagemRef, (jogadoresSnapshot) => {
+            const jogadoresOnline = jogadoresSnapshot.val() || {};
+            const listaIdsOnline = Object.keys(jogadoresOnline);
+
+            // Se o turno estiver vazio OU pertencer a alguém que ficou offline, o primeiro da fila assume
+            if (!jogadorDoTurno || !listaIdsOnline.includes(jogadorDoTurno)) {
+                if (listaIdsOnline.length > 0 && listaIdsOnline[0] === playerId) {
+                    set(ref(db, 'partida/turnoAtual'), playerId);
+                }
+                return;
+            }
+
+            // Aplica o bloqueio ou liberação dos botões
+            if (jogadorDoTurno === playerId) {
+                minhaVez = true;
+                statusTexto.innerText = "🟢 É a sua vez de cuidar da fazenda!";
+                botoes.forEach(b => b.disabled = false);
+            } else {
+                minhaVez = false;
+                const nomeDoTurno = jogadoresOnline[jogadorDoTurno] ? jogadoresOnline[jogadorDoTurno].nome : "Outro produtor";
+                statusTexto.innerText = `⏳ Vez de: ${nomeDoTurno}...`;
+                botoes.forEach(b => b.disabled = true);
+            }
+        }, { onlyOnce: true });
     });
 });
 
@@ -135,7 +147,7 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     if (meuSolo <= 0) {
         alert("🚨 Seu solo está esgotado! Você perdeu 20 pontos por degradação.");
         meusPontos = Math.max(0, meusPontos - 20);
-        meuSolo = 40; // Dá uma sobrevida para o jogador continuar
+        meuSolo = 40; // Sistema de ajuda para o jogador não travar em 0%
     }
 
     salvarDadosNoFirebase();
