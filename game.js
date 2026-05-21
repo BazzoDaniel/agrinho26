@@ -45,10 +45,11 @@ let meusFertilizantes = 4;
 let meusPontos = 0;
 let jaPlantou = false;
 let turnoAtualPartida = 1;
-let turnosProtegidosPraga = 0; // Nova variável de controle de proteção
+let turnosProtegidosPraga = 0; 
 
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
+    popupMensagem.innerText = message; // Proteção interna contra a quebra de string
     popupMensagem.innerText = mensagem;
     popupContainer.classList.remove('hidden');
 }
@@ -150,7 +151,7 @@ function iniciarEscutasDoJogo() {
 
         if (jogadorDoTurno === playerId) {
             minhaVez = true;
-            const shieldStatus = turnosProtegidosPraga > 0 ? ` [🛡️ Escudo ativo: ${turnosProtegidosPraga}T]` : "";
+            const shieldStatus = turnosProtegidosPraga > 0 ? ` [🛡️ Escudo químico ativo: ${turnosProtegidosPraga}T]` : "";
             statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez!${shieldStatus}`;
             botoes.forEach(b => { if(b.id !== 'btn-reiniciar') b.disabled = false; });
         } else {
@@ -212,15 +213,15 @@ function iniciarEscutasDoJogo() {
                 checarInfeccaoSoloPorTempo();
             }
             else if (evento.tipo === 'praga') {
-                // MODIFICAÇÃO: Checa se o jogador possui turnos de proteção ativos
+                // MODIFICAÇÃO: O escudo agora pertence à aplicação de defensivo
                 if (turnosProtegidosPraga > 0) {
-                    mostrarAlerta(`Ataque de Pragas repelido! O seu Biofertilizante protegeu a lavoura. (Proteção restante: ${turnosProtegidosPraga} turnos)`, "🛡️");
+                    mostrarAlerta(`Ataque de Pragas neutralizado! O efeito do Defensivo Químico protegeu sua plantação. (${turnosProtegidosPraga}T restantes)`, "🛡️");
                 } else if (meuSolo < 70) {
                     meuSolo = Math.max(0, meuSolo - 20);
                     jaPlantou = false; 
-                    mostrarAlerta("Infestação de Pragas! Como seu solo estava fraco (< 70%) e desprotegido, os insetos destruíram tudo.", "🐛");
+                    mostrarAlerta("Infestação de Pragas! Como seu solo estava fraco (< 70%) e desprotegido por defensivos, a lavoura foi destruída.", "🐛");
                 } else {
-                    mostrarAlerta("Infestação de Pragas! Seu solo resistiu por estar forte, mas considere fertilizar para evitar riscos.", "🛡️");
+                    mostrarAlerta("Infestação de Pragas! Seu solo resistiu por estar forte e bem estruturado.", "🛡️");
                 }
             }
 
@@ -265,12 +266,13 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     if (minhasSementes < 10) return mostrarAlerta("Sementes insuficientes!", "⚠️");
 
     minhasSementes -= 10;
-    meuSolo = Math.max(0, meuSolo - 20); 
+    meuSolo = Math.max(0, meuSolo - 12); 
     jaPlantou = true; 
+    turnosProtegidosPraga = 4; // MODIFICAÇÃO: A proteção de 4 turnos contra insetos agora ativa aqui!
 
     txtSementes.innerText = minhasSementes + " sementes";
     txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Você usou defensivos químicos comuns. Saúde do solo caiu para ${meuSolo}%!`, "⚠️");
+    mostrarAlerta(`Defensivo químico aplicado. O solo perdeu saúde (-12%), mas sua lavoura está protegida contra insetos por 4 turnos!`, "⚠️");
     
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
@@ -283,22 +285,21 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
 
     meusFertilizantes -= 1;
     meuSolo = Math.min(100, meuSolo + 25); 
-    turnosProtegidosPraga = 4; // MODIFICAÇÃO: Garante 4 turnos de proteção integral
+    // MODIFICAÇÃO: Linha de proteção contra pragas removida do biofertilizante
 
     txtFertilizantes.innerText = meusFertilizantes;
     txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Biofertilizante aplicado! Solo aumentado em +25% e protegido contra pragas por 4 turnos!`, "🧪");
+    mostrarAlerta(`Biofertilizante aplicado com sucesso! Nutrição do solo aumentada em +25%.`, "🧪");
 
     salvarDadosNoFirebase();
     passarTurno();
 });
 
-// NOVO BOTÃO: Mecânica de compra de suprimentos
 document.getElementById('btn-comprar-fertilizante').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
-    if (minhasSementes < 10) return mostrarAlerta("Você precisa de pelo menos 10 sementes para comprar suprimentos!", "⚠️");
+    if (minhasSementes < 12) return mostrarAlerta("Você precisa de pelo menos 12 sementes para comprar suprimentos!", "⚠️");
 
-    minhasSementes -= 10;
+    minhasSementes -= 12; 
     meusFertilizantes += 2;
 
     txtSementes.innerText = minhasSementes + " sementes";
@@ -307,7 +308,6 @@ document.getElementById('btn-comprar-fertilizante').addEventListener('click', ()
 
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    // Nota: Comprar recursos NÃO passa o turno, permitindo que o jogador use o fertilizante logo em seguida.
 });
 
 document.getElementById('btn-colher').addEventListener('click', () => {
@@ -317,7 +317,7 @@ document.getElementById('btn-colher').addEventListener('click', () => {
         meusPontos += 50;
         minhasSementes += 40; 
         jaPlantou = false;
-        meuSolo = Math.max(0, meuSolo - 2); 
+        meuSolo = Math.max(0, meuSolo - 1); 
 
         mostrarAlerta("Colheita de sucesso! Você ganhou 50 pontos e +40 sementes.", "🚜");
         txtSementes.innerText = minhasSementes + " sementes";
@@ -387,7 +387,7 @@ function salvarDadosNoFirebase() {
         sementes: minhasSementes,
         fertilizantes: meusFertilizantes,
         plantou: jaPlantou,
-        turnosProtegidos: turnosProtegidosPraga // Sincroniza a proteção no Firebase
+        turnosProtegidos: turnosProtegidosPraga 
     });
 }
 
@@ -395,12 +395,11 @@ async function passarTurno() {
     checarDerrotaPorSementes();
     if (faliu) return;
 
-    // MODIFICAÇÃO: Consome 1 turno da proteção contra pragas na passagem de tempo natural
     if (turnosProtegidosPraga > 0) {
         turnosProtegidosPraga--;
     }
 
-    meuSolo = Math.max(0, meuSolo - 13);
+    meuSolo = Math.max(0, meuSolo - 5); 
     txtSolo.innerText = meuSolo + "%";
     
     checarInfeccaoSoloPorTempo();
