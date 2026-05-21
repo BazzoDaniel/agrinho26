@@ -57,7 +57,7 @@ mudarFundo('1.png');
 
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = message || mensagem;
+    popupMensagem.innerText = mensagem; // Corrigido aqui para evitar quebra de código
     popupContainer.classList.remove('hidden');
 }
 
@@ -221,7 +221,7 @@ function iniciarEscutasDoJogo() {
 
         if (!evento) return;
 
-        txtClima.innerText = `${evento.icone} Clima: ${evento.nome} (${evento.descricao ?? ''})`;
+        txtClima.innerHTML = `Clima atual: ${evento.icone} ${evento.nome} (${evento.descricao ?? ''}) | 📅 Turno: <span id="turno-display">${turnoAtualPartida}</span>`;
 
         // TROCA O FUNDO DE ACORDO COM O TIPO DE EVENTO DO SERVIDOR
         if (evento.tipo === 'normal') {
@@ -335,7 +335,7 @@ document.getElementById('btn-plantar').addEventListener('click', () => {
     
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    if (!faliu) passarTurno();
+    if (!faliu) pasarTurnoRapido();
 });
 
 document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
@@ -354,7 +354,7 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     checarDerrotaPorSementes();
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
-    if (!faliu) passarTurno();
+    if (!faliu) pasarTurnoRapido();
 });
 
 document.getElementById('btn-fertilizar').addEventListener('click', () => {
@@ -369,7 +369,7 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
     mostrarAlerta(`Biofertilizante aplicado! Nutrição do solo aumentada em +25%.`, "🧪");
 
     salvarDadosNoFirebase();
-    passarTurno();
+    pasarTurnoRapido();
 });
 
 document.getElementById('btn-comprar-fertilizante').addEventListener('click', () => {
@@ -409,7 +409,7 @@ document.getElementById('btn-colher').addEventListener('click', () => {
 
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    if (!faliu) passarTurno();
+    if (!faliu) pasarTurnoRapido();
 });
 
 async function acionarResetGlobalSincronizado() {
@@ -433,8 +433,13 @@ async function acionarResetGlobalSincronizado() {
     }
 }
 
-document.getElementById('btn-reiniciar').addEventListener('click', acionarResetGlobalSincronizado);
-document.getElementById('btn-reset-global').addEventListener('click', acionarResetGlobalSincronizado);
+// Vinculação segura após o carregamento da DOM
+document.addEventListener("DOMContentLoaded", () => {
+    const btnReiniciar = document.getElementById('btn-reiniciar');
+    const btnResetGlobal = document.getElementById('btn-reset-global');
+    if (btnReiniciar) btnReiniciar.addEventListener('click', acionarResetGlobalSincronizado);
+    if (btnResetGlobal) btnResetGlobal.addEventListener('click', acionarResetGlobalSincronizado);
+});
 
 function checarDegradacaoSolo() {
     if (meuSolo <= 0) {
@@ -463,7 +468,7 @@ function salvarDadosNoFirebase() {
     });
 }
 
-async function passarTurno() {
+async function pasarTurnoRapido() {
     if (faliu) return;
 
     if (turnosProtegidosPraga > 0) {
@@ -528,4 +533,4 @@ async function passarTurno() {
     }
 }
 
-window.passarTurno = passarTurno;
+window.passarTurno = pasarTurnoRapido;
