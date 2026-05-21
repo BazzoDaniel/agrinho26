@@ -39,14 +39,13 @@ body {
 }
 
 /* --- CONTAINER CENTRAL --- */
-/* --- CONTAINER CENTRAL --- */
 #game-container {
-    background: rgba(255, 255, 255, 0.94); /* Fundo branco com 6% de transparência para destacar o fundo */
-    max-width: 500px;                      /* Reduzido fixo para 500px como você pediu */
+    background: rgba(255, 255, 255, 0.94); /* Fundo branco com leve transparência */
+    max-width: 500px;                      /* Reduzido fixo para 500px */
     width: 100%;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* Sombra um pouco mais marcante para destacar o painel */
-    padding: 25px;                         /* Ajustado levemente para equilibrar com os 500px */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* Sombra marcante para destacar o painel */
+    padding: 25px;                         /* Ajustado para equilibrar com os 500px */
     border-top: 8px solid var(--verde-principal);
     text-align: center; /* Mantém o título e o lobby centralizados */
 }
@@ -226,6 +225,15 @@ hr {
     background-color: #ef5350;
 }
 
+/* NOVO: Estilo para o Botão de Biofertilizante */
+#btn-fertilizar {
+    background-color: #0288d1; /* Azul clima para diferenciar das sementes, ou use var(--verde-principal) */
+}
+
+#btn-fertilizar:hover:not(:disabled) {
+    background-color: #29b6f6;
+}
+
 #btn-colher {
     background-color: #f57c00;
 }
@@ -262,4 +270,59 @@ hr {
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* --- SISTEMA DE POP-UP CUSTOMIZADO --- */
+#popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6); /* Fundo escuro atrás do pop-up */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Garante que fica na frente de tudo */
+}
+
+#popup-box {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    padding: 25px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-top: 6px solid var(--verde-principal);
+    animation: popup 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#popup-icone {
+    font-size: 45px;
+    margin-bottom: 15px;
+}
+
+#popup-mensagem {
+    color: var(--texto-escuro);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+#btn-popup-ok {
+    padding: 10px 30px;
+    background-color: var(--verde-principal);
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#btn-popup-ok:hover {
+    background-color: var(--verde-claro);
 }

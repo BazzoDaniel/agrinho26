@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solo Critico!</title>
-
+    <title>Solo Crítico!</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
     <div id="game-container">
@@ -15,36 +13,20 @@
         <h1>Novo usuário</h1>
 
         <div id="lobby">
-            <input type="text"
-                   id="player-name"
-                   placeholder="Seu nome do produtor">
-
-            <button id="btn-entrar">
-                Entrar na Fazenda
-            </button>
+            <input type="text" id="player-name" placeholder="Seu nome do produtor">
+            <button id="btn-entrar">Entrar na Fazenda</button>
         </div>
 
         <div id="game-board" class="hidden">
 
             <div id="painel-superior">
-
-                <p id="status">
-                    Aguardando jogadores...
-                </p>
-
-                <p id="clima-atual"
-                   style="font-size: 18px;
-                          font-weight: bold;
-                          color: #0288d1;
-                          margin-top: 5px;">
-                    🌤️ Clima: Tempo Limpo
-                </p>
+                <p id="status">Aguardando jogadores...</p>
+                
                 <p id="clima-atual" style="font-size: 18px; font-weight: bold; color: #0288d1; margin-top: 5px;">
                     🌤️ Clima: Tempo Limpo | 📅 Turno: <span id="turno-display">1</span>
                 </p>
 
                 <div id="jogadores-conectados"></div>
-
             </div>
 
             <hr>
@@ -52,31 +34,14 @@
             <div id="tabuleiro-container">
 
                 <div id="info-fazenda">
-
                     <h3>Sua Fazenda 🌾</h3>
-
-                    <p>
-                        Status do Solo:
-                        <span id="status-solo">100%</span>
-                    </p>
-
-                    <p>
-                        Recursos:
-                        <span id="recursos-moedas">100 sementes</span>
-                    </p>
-
-                    <p>
-                        Estoque de Biofertilizante:
-                        <span id="recursos-fertilizantes" style="font-weight: bold; color: #2e7d32;">4</span> cargas
-                    </p>
-
+                    <p>Status do Solo: <span id="status-solo">100%</span></p>
+                    <p>Recursos: <span id="recursos-moedas">100 sementes</span></p>
+                    <p>Estoque de Biofertilizante: <span id="recursos-fertilizantes" style="font-weight: bold; color: #2e7d32;">4</span> cargas</p>
                 </div>
 
                 <div id="Painel-Acoes">
-
-                    <h3>
-                        Sua Vez! Escolha uma ação sustentável:
-                    </h3>
+                    <h3>Sua Vez! Escolha uma ação sustentável:</h3>
 
                     <button id="btn-plantar" class="btn-acao">
                         🌱 Plantio Direto (Usa 20 sementes)
@@ -86,46 +51,35 @@
                         ⚠️ Defensivo Comum (Usa 10 sementes | Solo -20%)
                     </button>
 
-                    <button id="btn-fertilizar" class="btn-acao" style="background-color: #e8f5e9; color: #2e7d32; border: 2px solid #4caf50;">
+                    <button id="btn-fertilizar" class="btn-acao">
                         🧪 Aplicar Biofertilizante (+25% Resistência Solo)
                     </button>
 
                     <button id="btn-colher" class="btn-acao">
                         🚜 Colher Safra (Ganha 50 pontos e +40 sementes)
                     </button>
-
                 </div>
 
-                <div id="tela-fim-jogo"
-                     class="hidden"
-                     style="background-color: #fff3e0;
-                            border: 3px solid #ffb74d;
-                            padding: 20px;
-                            border-radius: 12px;
-                            margin-top: 20px;">
-
-                    <h2 style="color: #e65100;">
-                        🎉 Temos um Vencedor! 🎉
-                    </h2>
-
-                    <p id="texto-vencedor"
-                       style="font-size: 20px;
-                              font-weight: bold;">
-                    </p>
-
-                    <button id="btn-reiniciar"
-                            class="btn-acao"
-                            style="background-color: #ff9800;">
+                <div id="tela-fim-jogo" class="hidden" style="background-color: #fff3e0; border: 3px solid #ffb74d; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h2 style="color: #e65100;">🎉 Temos um Vencedor! 🎉</h2>
+                    <p id="texto-vencedor" style="font-size: 20px; font-weight: bold;"></p>
+                    <button id="btn-reiniciar" class="btn-acao" style="background-color: #ff9800;">
                         Jogar Novamente 🔄
                     </button>
-
                 </div>
 
             </div>
         </div>
     </div>
 
-    <script type="module" src="game.js"></script>
+    <div id="popup-container" class="hidden">
+        <div id="popup-box">
+            <div id="popup-icone">🌤️</div>
+            <p id="popup-mensagem">Mensagem do sistema...</p>
+            <button id="btn-popup-ok">Entendido</button>
+        </div>
+    </div>
 
+    <script type="module" src="game.js"></script>
 </body>
 </html>
