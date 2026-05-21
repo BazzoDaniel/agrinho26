@@ -39,13 +39,14 @@ body {
 }
 
 /* --- CONTAINER CENTRAL --- */
+/* --- CONTAINER CENTRAL --- */
 #game-container {
-    background: #ffffff;
-    max-width: 700px;
+    background: rgba(77, 131, 66, 0.94); /* Fundo branco com 6% de transparência para destacar o fundo */
+    max-width: 500px;                      /* Reduzido fixo para 500px como você pediu */
     width: 100%;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* Sombra um pouco mais marcante para destacar o painel */
+    padding: 25px;                         /* Ajustado levemente para equilibrar com os 500px */
     border-top: 8px solid var(--verde-principal);
     text-align: center; /* Mantém o título e o lobby centralizados */
 }
