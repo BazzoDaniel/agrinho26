@@ -7,8 +7,8 @@
 }
 
 body {
-    /* Imagem de Fundo aplicada com preenchimento inteligente e responsivo */
-    background-image: url('1.png');
+    /* Configurações de preenchimento inteligente mantidas. 
+       A imagem agora é injetada dinamicamente pelo game.js */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

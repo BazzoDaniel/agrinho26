@@ -47,15 +47,22 @@ let jaPlantou = false;
 let turnoAtualPartida = 1;
 let turnosProtegidosPraga = 0; 
 
+// FUNÇÃO AUXILIAR PARA TROCAR O PLANO DE FUNDO
+function mudarFundo(nomeImagem) {
+    document.body.style.backgroundImage = `url('${nomeImagem}')`;
+}
+
+// DEFINE A IMAGEM PADRÃO DO MENU/LOBBY ASSIM QUE O JOGO CARREGA
+mudarFundo('1.png');
+
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = mensagem;
+    popupMensagem.innerText = message || mensagem;
     popupContainer.classList.remove('hidden');
 }
 
 btnPopupOk.addEventListener('click', () => {
     popupContainer.classList.add('hidden');
-    // Se o jogador faliu, após fechar o pop-up ele é expulso para a tela inicial
     if (faliu) {
         executarSaidaEGameOver();
     }
@@ -77,7 +84,7 @@ btnEntrar.addEventListener('click', async () => {
                 numeroTurno: 1,
                 turnoAtual: playerId, 
                 vencedor: null,
-                controleReset: 0, // Gatilho de reset sincronizado
+                controleReset: 0,
                 eventoAtual: {
                     nome: "Tempo Limpo",
                     icone: "🌤️",
@@ -126,7 +133,6 @@ btnEntrar.addEventListener('click', async () => {
 });
 
 function iniciarEscutasDoJogo() {
-    // ESCUTA DE RESET GLOBAL: Recarrega a página de todos os jogadores sincronizadamente
     onValue(ref(db, 'partida/controleReset'), (snapshot) => {
         const valorReset = snapshot.val();
         if (valorReset && valorReset > 0) {
@@ -143,7 +149,6 @@ function iniciarEscutasDoJogo() {
         if (dados) {
             const listaIds = Object.keys(dados);
             
-            // Vitória automática por W.O. (Se restou apenas 1 jogador em jogo)
             if (listaIds.length === 1 && playerId && listaIds[0] === playerId && turnoAtualPartida > 1) {
                 get(ref(db, 'partida/vencedor')).then((vencedorSnap) => {
                     if (!vencedorSnap.val()) {
@@ -209,6 +214,7 @@ function iniciarEscutasDoJogo() {
         }
     });
 
+    // MUDANÇA DINÂMICA DAS IMAGENS DE ACORDO COM O CLIMA ATUAL
     onValue(ref(db, 'partida/eventoAtual'), (snapshot) => {
         const evento = snapshot.val();
         const txtClima = document.getElementById('clima-atual');
@@ -216,6 +222,19 @@ function iniciarEscutasDoJogo() {
         if (!evento) return;
 
         txtClima.innerText = `${evento.icone} Clima: ${evento.nome} (${evento.descricao ?? ''})`;
+
+        // TROCA O FUNDO DE ACORDO COM O TIPO DE EVENTO DO SERVIDOR
+        if (evento.tipo === 'normal') {
+            mudarFundo('2.png'); // Tempo Limpo
+        } else if (evento.tipo === 'chuva') {
+            mudarFundo('3.png'); // Chuva Leve
+        } else if (evento.tipo === 'praga') {
+            mudarFundo('4.png'); // Invasão de Pragas
+        } else if (evento.tipo === 'chuva_forte') {
+            mudarFundo('5.png'); // Tempestade
+        } else if (evento.tipo === 'seca') {
+            mudarFundo('2.png'); // Seca usa o cenário limpo/aberto por padrão
+        }
 
         if (turnoAtualPartida === 1 && evento.tipo !== 'normal') return;
 
@@ -231,7 +250,6 @@ function iniciarEscutasDoJogo() {
                 mostrarAlerta("Chuva na hora certa! Seu solo recuperou 15% de umidade.", "🌧️");
             }
             else if (evento.tipo === 'chuva_forte') {
-                // ALTERADO: Reduzido o dano de -30% para -20% de impacto no solo
                 meuSolo = Math.max(0, meuSolo - 20);
                 mostrarAlerta("Tempestade de Chuva Forte! O excesso de água causou erosão (-20% solo)!", "⛈️");
                 checarInfeccaoSoloPorTempo();
@@ -239,7 +257,7 @@ function iniciarEscutasDoJogo() {
             else if (evento.tipo === 'praga') {
                 if (turnosProtegidosPraga > 0) {
                     mostrarAlerta(`Ataque de Pragas repelido pelo efeito do Defensivo Químico. (${turnosProtegidosPraga}T restantes)`, "🛡️");
-                } else if (meuSolo < 55) { // ALTERADO: Limite ajustado de 70% para 55%
+                } else if (meuSolo < 55) {
                     meuSolo = Math.max(0, meuSolo - 20);
                     jaPlantou = false; 
                     mostrarAlerta("Infestação de Pragas! Como seu solo estava crítico (< 55%), a lavoura foi destruída.", "🐛");
@@ -258,7 +276,6 @@ function iniciarEscutasDoJogo() {
     });
 }
 
-// LÓGICA DE GAME OVER: Menos de 20 sementes resulta em expulsão imediata
 function checarDerrotaPorSementes() {
     if (minhasSementes < 20 && !faliu) {
         faliu = true;
@@ -286,6 +303,9 @@ async function executarSaidaEGameOver() {
     gameBoard.classList.add('hidden');
     lobby.classList.remove('hidden');
     inputNome.value = "";
+    
+    // VOLTA PARA O FUNDO DO MENU CASO O JOGADOR MORRA OU SAIA
+    mudarFundo('1.png');
 }
 
 async function forcarPassagemTurnoPorFalecimento(idFalecido) {
@@ -392,7 +412,6 @@ document.getElementById('btn-colher').addEventListener('click', () => {
     if (!faliu) passarTurno();
 });
 
-// FUNÇÃO DE REINÍCIO FORÇADO GLOBAL (Limpa o banco e dá F5 em todos os navegadores conectados)
 async function acionarResetGlobalSincronizado() {
     try {
         await set(ref(db, 'jogadores'), null);
@@ -400,7 +419,7 @@ async function acionarResetGlobalSincronizado() {
             numeroTurno: 1,
             turnoAtual: "",
             vencedor: null,
-            controleReset: Date.now(), // Dispara o F5 automático geral
+            controleReset: Date.now(), 
             eventoAtual: {
                 nome: "Tempo Limpo",
                 icone: "🌤️",
@@ -426,7 +445,6 @@ function checarDegradacaoSolo() {
 }
 
 function checarInfeccaoSoloPorTempo() {
-    // ALTERADO: Antes era < 70%, agora a lavoura só quebra se o solo ficar abaixo de 55%
     if (meuSolo < 55 && jaPlantou && turnosProtegidosPraga <= 0) {
         jaPlantou = false; 
         mostrarAlerta("Infestação! Como o seu solo estava fraco (< 55%), pragas destruíram a colheita!", "🐛");
@@ -462,7 +480,6 @@ async function passarTurno() {
     let eventoSorteado;
     const chance = Math.random();
 
-    // PROBABILIDADES EVOLUTIVAS DE ACORDO COM O TURNO
     if (turnoAtualPartida === 1) {
         if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições ideais para o início do manejo." };
         else eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva", descricao: "A umidade ajuda o solo. Todos recuperam 15%." };
@@ -474,14 +491,13 @@ async function passarTurno() {
         else eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições estáveis." };
     }
     else {
-        // TURNO 3 OU MAIS: 17% Tempestade | 23% Pragas | 30% Chuva Abençoada | 30% Tempo Limpo
         if (chance < 0.17) {
             eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 20% de solo.", tipo: "chuva_forte" };
         } 
-        else if (chance < 0.40) { // 0.17 + 0.23 = 0.40
+        else if (chance < 0.40) { 
             eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos críticos (< 55%) perdem a lavoura ativa.", tipo: "praga" };
         } 
-        else if (chance < 0.70) { // 0.40 + 0.30 = 0.70
+        else if (chance < 0.70) { 
             eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15%.", tipo: "chuva" };
         } 
         else {
