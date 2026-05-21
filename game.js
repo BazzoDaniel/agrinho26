@@ -43,7 +43,6 @@ btnEntrar.addEventListener('click', () => {
 
     const playerRef = ref(db, 'jogadores/' + playerId);
     
-    // Salvando todos os atributos iniciais no Firebase
     set(playerRef, {
         nome: nome,
         pontuacao: meusPontos,
@@ -54,13 +53,11 @@ btnEntrar.addEventListener('click', () => {
         online: true
     });
 
-    // Remove o jogador se ele desconectar ou fechar a aba
     onDisconnect(playerRef).remove();
 
     lobby.classList.add('hidden');
     gameBoard.classList.remove('hidden');
 
-    // Atualiza a tela local imediatamente
     txtSolo.innerText = meuSolo + "%";
     txtSementes.innerText = minhasSementes + " sementes";
     txtFertilizantes.innerText = meusFertilizantes;
@@ -84,7 +81,7 @@ btnEntrar.addEventListener('click', () => {
         }
     });
 
-    // 2. Escuta de quem é o turno na partida
+    // 2. Escuta o turno
     const turnoRef = ref(db, 'partida/turnoAtual');
     onValue(turnoRef, (snapshot) => {
         const jogadorDoTurno = snapshot.val();
@@ -116,7 +113,7 @@ btnEntrar.addEventListener('click', () => {
         }, { onlyOnce: true });
     });
 
-    // 3. OUVIR O VENCEDOR
+    // 3. Ouvir vencedor
     const vencedorRef = ref(db, 'partida/vencedor');
     onValue(vencedorRef, (snapshot) => {
         const vencedor = snapshot.val();
@@ -137,7 +134,7 @@ btnEntrar.addEventListener('click', () => {
         }
     });
 
-    // BOTÃO REINICIAR
+    // Botão reiniciar
     document.getElementById('btn-reiniciar').addEventListener('click', () => {
         set(ref(db, 'partida/eventoAtual'), null);
         window.ultimaRodadaEfeito = null;
@@ -158,7 +155,7 @@ btnEntrar.addEventListener('click', () => {
         alert("🔄 Nova partida iniciada!");
     });
 
-    // 4. OUVIR AS MUDANÇAS CLIMÁTICAS
+    // 4. Ouvir o Clima (ATUALIZADO COM CHUVA FORTE)
     const climaRef = ref(db, 'partida/eventoAtual');
     onValue(climaRef, (snapshot) => {
         const evento = snapshot.val();
@@ -182,6 +179,12 @@ btnEntrar.addEventListener('click', () => {
                 meuSolo = Math.min(100, meuSolo + 15);
                 alert(`🌧️ Chuva na hora certa! Seu solo recuperou 15% de umidade e saúde.`);
             }
+            else if (evento.tipo === 'chuva_forte') {
+                // Nova consequência climática direta na resistência
+                meuSolo = Math.max(0, meuSolo - 30);
+                alert(`⛈️ Tempestade e Chuva Forte! O excesso de água causou erosão na cabeceira e a resistência do solo despencou em -30%!`);
+                checarInfeccaoSoloPorTempo();
+            }
             else if (evento.tipo === 'praga') {
                 if (meuSolo < 70) {
                     meuSolo = Math.max(0, meuSolo - 20);
@@ -195,12 +198,13 @@ btnEntrar.addEventListener('click', () => {
             txtSolo.innerText = meuSolo + "%";
             txtSementes.innerText = minhasSementes + " sementes";
 
+            checarDegradacaoSolo();
             salvarDadosNoFirebase();
         }
     });
 });
 
-// --- AÇÕES DO TABULEIRO ---
+// --- AÇÕES ---
 
 document.getElementById('btn-plantar').addEventListener('click', () => {
     if (!minhaVez) return;
@@ -233,7 +237,6 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     passarTurno();
 });
 
-// AÇÃO DE APLICAR BIOFERTILIZANTE SUSTENTÁVEL
 document.getElementById('btn-fertilizar').addEventListener('click', () => {
     if (!minhaVez) return;
     if (meusFertilizantes <= 0) return alert("Você não tem mais estoque de fertilizantes!");
@@ -257,7 +260,6 @@ document.getElementById('btn-colher').addEventListener('click', () => {
         minhasSementes += 40; 
         jaPlantou = false;
 
-        // A colheita retira nutrientes e desgasta o solo em 2%
         meuSolo = Math.max(0, meuSolo - 2); 
 
         alert("🚜 Colheita de sucesso! Você ganhou 50 pontos e reabasteceu +40 sementes. O processo de colheita desgastou o solo em -2%.");
@@ -265,7 +267,6 @@ document.getElementById('btn-colher').addEventListener('click', () => {
         txtSementes.innerText = minhasSementes + " sementes";
         txtSolo.innerText = meuSolo + "%";
 
-        // CONFIGURAÇÃO ATUALIZADA: Vitória agora exige 300 pontos
         if (meusPontos >= 300) {
             set(ref(db, 'partida/vencedor'), inputNome.value.trim());
         }
@@ -285,6 +286,13 @@ function checarDegradacaoSolo() {
     }
 }
 
+function checarInfeccaoSoloPorTempo() {
+    if (meuSolo < 70 && jaPlantou) {
+        jaPlantou = false; 
+        alert("🐛 Infestação! Como a resistência do seu solo caiu abaixo de 70%, pragas invadiram a fazenda e destruíram a colheita!");
+    }
+}
+
 function salvarDadosNoFirebase() {
     if (!playerId) return;
     update(ref(db, 'jogadores/' + playerId), {
@@ -297,33 +305,39 @@ function salvarDadosNoFirebase() {
 }
 
 function passarTurno() {
-    // O tempo passa e o solo perde 13% de resistência por turno
+    // Desgaste temporal normal de 13% por turno
     meuSolo = Math.max(0, meuSolo - 13);
     txtSolo.innerText = meuSolo + "%";
     
-    // REGRA DE INFESTAÇÃO: Se o solo cair abaixo de 70%, perde a colheita!
-    if (meuSolo < 70 && jaPlantou) {
-        jaPlantou = false; 
-        alert("🐛 Infestação! Como a resistência do seu solo caiu abaixo de 70% devido ao desgaste do tempo, pragas invadiram a fazenda e destruíram a colheita!");
-    }
-    
+    checarInfeccaoSoloPorTempo();
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
 
-    // EVENTOS CLIMÁTICOS
-    const eventosPossiveis = [
-        { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" },
-        { nome: "Seca Prolongada", icone: "🔥", descricao: "O calor consome recursos. Todos perdem 10 sementes.", tipo: "seca" },
-        { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15% de saúde da terra.", tipo: "chuva" },
-        { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (abaixo de 70%) sofrem quebra e perdem 20% de saúde.", tipo: "praga" }
-    ];
+    // --- NOVA LÓGICA DE CLIMA COM CHUVA FORTE ---
+    let eventoSorteado;
+    const chance = Math.random();
 
-    const eventoSorteado = eventosPossiveis[Math.floor(Math.random() * eventosPossiveis.length)];
+    if (chance < 0.40) {
+        // 40% de chance de Tempo Limpo
+        eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
+    } else if (chance < 0.55) {
+        // 15% de chance de Chuva Abençoada
+        eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15% de saúde da terra.", tipo: "chuva" };
+    } else if (chance < 0.70) {
+        // 15% de chance de Seca Prolongada
+        eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", descricao: "O calor consome recursos. Todos perdem 10 sementes.", tipo: "seca" };
+    } else if (chance < 0.85) {
+        // 15% de chance de Pragas
+        eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (abaixo de 70%) sofrem quebra e perdem 20% de saúde.", tipo: "praga" };
+    } else {
+        // 15% de chance de Chuva Forte (-30% Solo)
+        eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa lixiviação e erosão. Todos perdem 30% de resistência do solo.", tipo: "chuva_forte" };
+    }
+
     eventoSorteado.idRodada = Date.now();
-
     set(ref(db, 'partida/eventoAtual'), eventoSorteado);
 
-    // TROCA O TURNO
+    // Troca o Turno
     const todosJogadoresRef = ref(db, 'jogadores/');
     onValue(todosJogadoresRef, (snapshot) => {
         const lista = snapshot.val();
