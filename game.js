@@ -364,6 +364,12 @@ document.getElementById('btn-reiniciar').addEventListener('click', () => {
     mostrarAlerta("Nova partida iniciada no Turno 1 com Tempo Limpo!", "🔄");
 });
 
+// Vincula o novo botão flutuante de canto à mesma lógica de reiniciar a partida
+document.getElementById('btn-reset-global').addEventListener('click', () => {
+    // Dispara o clique do botão de reiniciar original para reaproveitar toda a lógica
+    document.getElementById('btn-reiniciar').click();
+});
+
 function checarDegradacaoSolo() {
     if (meuSolo <= 0) {
         mostrarAlerta("Seu solo está completamente esgotado! Você perdeu 20 pontos por degradação severa.", "🚨");

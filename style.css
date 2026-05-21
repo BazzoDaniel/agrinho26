@@ -272,3 +272,43 @@ h1 {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
+/* Botão Reset Flutuante Fixo no Canto Inferior Direito */
+#btn-reset-global {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999; /* Fica por cima de absolutamente tudo, até dos pop-ups */
+    background-color: #d84315; /* Laranja escuro/alerta */
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 50px; /* Estilo pílula/arredondado */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+#btn-reset-global:hover {
+    background-color: #bf360c;
+    transform: scale(1.05);
+}
+
+#btn-reset-global:active {
+    transform: scale(0.95);
+}
+
+/* Ajuste discreto para telas menores (celulares) não cobrir textos importantes */
+@media (max-width: 480px) {
+    #btn-reset-global {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px 14px;
+        font-size: 0.8rem;
+        opacity: 0.9; /* Levemente transparente no celular para não atrapalhar a visão */
+    }
+}
