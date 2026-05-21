@@ -60,7 +60,7 @@ mudarFundo('1.png');
 
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = mensagem; // Corrigido de 'message' para 'mensagem'
+    popupMensagem.innerText = mensagem; 
     popupContainer.classList.remove('hidden');
 }
 
@@ -190,7 +190,6 @@ function iniciarEscutasDoJogo() {
 
         if (faliu) return;
 
-        // Se o banco indicar que não há jogador ou se o ID sumiu temporariamente (comum em redes rápidas), assume a vez do player ativo se ele for o único
         if (!jogadorDoTurno && playerId) {
             set(ref(db, 'partida/turnoAtual'), playerId);
             return;
@@ -200,14 +199,14 @@ function iniciarEscutasDoJogo() {
             minhaVez = true;
             const shieldStatus = turnosProtegidosPraga > 0 ? ` [🛡️ Escudo ativo: ${turnosProtegidosPraga}T]` : "";
             statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez!${shieldStatus}`;
-            botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = false; });
+            botoes.forEach(b => { b.disabled = false; });
         } else {
             minhaVez = false;
             get(ref(db, `jogadores/${jogadorDoTurno}`)).then((playerSnap) => {
                 const nomeOponente = playerSnap.exists() ? playerSnap.val().nome : "Outro produtor";
                 statusTexto.innerText = `⏳ Turno ${turnoAtualPartida} - Vez de: ${nomeOponente}...`;
             });
-            botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = true; });
+            botoes.forEach(b => { b.disabled = true; });
         }
     });
 
@@ -222,11 +221,11 @@ function iniciarEscutasDoJogo() {
             minhaVez = false;
             statusTexto.innerText = "🏁 Partida Encerrada!";
             if (painelAcoes) painelAcoes.classList.add('hidden');
-            telaFimJogo.classList.remove('hidden');
+            if (telaFimJogo) telaFimJogo.classList.remove('hidden');
             textoVencedor.innerText = `O Produtor ${vencedor} alcançou a meta e venceu a partida! 🌾🚜`;
         } else {
             if (painelAcoes) painelAcoes.classList.remove('hidden');
-            telaFimJogo.classList.add('hidden');
+            if (telaFimJogo) telaFimJogo.classList.add('hidden');
         }
     });
 
@@ -292,7 +291,7 @@ function checarDerrotaPorSementes() {
         faliu = true;
         minhaVez = false;
         const botoes = document.querySelectorAll('.btn-acao');
-        botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = true; });
+        botoes.forEach(b => { b.disabled = true; });
         document.getElementById('status').innerText = "❌ Você Faliu!";
         mostrarAlerta("Game Over! Seus recursos caíram para menos de 20 sementes. Você foi eliminado da fazenda.", "📉");
     }
@@ -391,6 +390,7 @@ document.getElementById('btn-comprar-fertilizante').addEventListener('click', ()
 
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
+    // Compra não passa o turno para permitir que o jogador jogue logo em seguida.
 });
 
 document.getElementById('btn-colher').addEventListener('click', () => {
@@ -429,7 +429,7 @@ async function acionarResetGlobalSincronizado() {
             eventoAtual: {
                 nome: "Tempo Limpo",
                 icone: "🌤️",
-                descricao: "Condições ideais para o manejo.",
+                descricao: "Condições ideais para o início do manejo.",
                 tipo: "normal",
                 idRodada: Date.now()
             }
@@ -439,12 +439,11 @@ async function acionarResetGlobalSincronizado() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const btnReiniciar = document.getElementById('btn-reiniciar');
-    const btnResetGlobal = document.getElementById('btn-reset-global');
-    if (btnReiniciar) btnReiniciar.addEventListener('click', acionarResetGlobalSincronizado);
-    if (btnResetGlobal) btnResetGlobal.addEventListener('click', acionarResetGlobalSincronizado);
-});
+// Vinculação direta dos botões de Reset (sem travas assíncronas do DOMContentLoaded)
+const btnReiniciar = document.getElementById('btn-reiniciar');
+const btnResetGlobal = document.getElementById('btn-reset-global');
+if (btnReiniciar) btnReiniciar.addEventListener('click', acionarResetGlobalSincronizado);
+if (btnResetGlobal) btnResetGlobal.addEventListener('click', acionarResetGlobalSincronizado);
 
 function checarDegradacaoSolo() {
     if (meuSolo <= 0) {
@@ -487,50 +486,61 @@ async function passarTurnoRapido() {
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
 
-    let eventoSorteado;
-    const chance = Math.random();
-
-    if (turnoAtualPartida === 1) {
-        if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições ideais para o início do manejo." };
-        else eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva", descricao: "A umidade ajuda o solo. Todos recuperam 15%." };
-    }
-    else if (turnoAtualPartida === 2) {
-        if (chance < 0.10) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", tipo: "praga", descricao: "Insetos buscam lavouras desprotegidas." };
-        else if (chance < 0.25) eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca", descricao: "O calor consome recursos. Todos perdem 10 sementes." };
-        else if (chance < 0.60) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva", descricao: "A umidade ajuda o solo. Todos recuperam 15%." };
-        else eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições estáveis." };
-    }
-    else {
-        if (chance < 0.17) {
-            eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 20% de solo.", tipo: "chuva_forte" };
-        } 
-        else if (chance < 0.40) { 
-            eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos críticos (< 55%) perdem a lavoura ativa.", tipo: "praga" };
-        } 
-        else if (chance < 0.70) { 
-            eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15%.", tipo: "chuva" };
-        } 
-        else {
-            eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
-        }
-    }
-
-    eventoSorteado.idRodada = Date.now();
-    await set(ref(db, 'partida/eventoAtual'), eventoSorteado);
-
     try {
         const snapshot = await get(ref(db, 'jogadores/'));
         const lista = snapshot.val();
         
         if (lista) {
             const ids = Object.keys(lista);
-            let proximoIndex = (ids.indexOf(playerId) + 1) % ids.length;
-            const proximoJogadorId = ids[proximoIndex];
+            let proximoIndex = ids.indexOf(playerId) + 1;
+            let novaRodadaCompleta = false;
 
-            if (proximoIndex === 0) {
-                await set(ref(db, 'partida/numeroTurno'), turnoAtualPartida + 1);
+            // Se for o último jogador do array, volta para o primeiro e marca o início de um novo turno global
+            if (proximoIndex >= ids.length) {
+                proximoIndex = 0;
+                novaRodadaCompleta = true;
             }
 
+            const proximoJogadorId = ids[proximoIndex];
+
+            // CORREÇÃO: O clima e o número do Turno SÓ mudam se a rodada inteira reiniciar
+            if (novaRodadaCompleta) {
+                const proximoTurnoGlobal = turnoAtualPartida + 1;
+                await set(ref(db, 'partida/numeroTurno'), proximoTurnoGlobal);
+
+                let eventoSorteado;
+                const chance = Math.random();
+
+                if (proximoTurnoGlobal === 1) {
+                    if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições ideais para o início do manejo." };
+                    else eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva", descricao: "A umidade ajuda o solo. Todos recuperam 15%." };
+                }
+                else if (proximoTurnoGlobal === 2) {
+                    if (chance < 0.10) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", tipo: "praga", descricao: "Insetos buscam lavouras desprotegidas." };
+                    else if (chance < 0.25) eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca", descricao: "O calor consome recursos. Todos perdem 10 sementes." };
+                    else if (chance < 0.60) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva", descricao: "A umidade ajuda o solo. Todos recuperam 15%." };
+                    else eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições estáveis." };
+                }
+                else {
+                    if (chance < 0.17) {
+                        eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 20% de solo.", tipo: "chuva_forte" };
+                    } 
+                    else if (chance < 0.40) { 
+                        eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos críticos (< 55%) perdem a lavoura ativa.", tipo: "praga" };
+                    } 
+                    else if (chance < 0.70) { 
+                        eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15%.", tipo: "chuva" };
+                    } 
+                    else {
+                        eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
+                    }
+                }
+
+                eventoSorteado.idRodada = Date.now();
+                await set(ref(db, 'partida/eventoAtual'), eventoSorteado);
+            }
+
+            // Passa a vez para o próximo fazendeiro da fila
             await set(ref(db, 'partida/turnoAtual'), proximoJogadorId);
         }
     } catch (error) {
