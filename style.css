@@ -41,7 +41,7 @@ body {
 /* --- CONTAINER CENTRAL --- */
 /* --- CONTAINER CENTRAL --- */
 #game-container {
-    background: rgba(77, 131, 66, 0.94); /* Fundo branco com 6% de transparência para destacar o fundo */
+    background: rgba(255, 255, 255, 0.94); /* Fundo branco com 6% de transparência para destacar o fundo */
     max-width: 500px;                      /* Reduzido fixo para 500px como você pediu */
     width: 100%;
     border-radius: 16px;
