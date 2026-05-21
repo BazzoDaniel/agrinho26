@@ -36,6 +36,7 @@ const txtTurno = document.getElementById('turno-display');
 // Estado do Jogador Atual
 let playerId = null;
 let minhaVez = false;
+let faliu = false; // Nova variável de controle de estado
 
 // Atributos iniciais da fazenda
 let meuSolo = 100;
@@ -48,7 +49,7 @@ let turnoAtualPartida = 1;
 // Função para disparar o Alerta customizado
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = mensagem; // Certifique-se de remover a linha duplicada com a palavra 'message'
+    popupMensagem.innerText = mensagem;
     popupContainer.classList.remove('hidden');
 }
 
@@ -145,6 +146,14 @@ function iniciarEscutasDoJogo() {
 
         if (!jogadorDoTurno) return;
 
+        // Se o jogador faliu, ele nunca terá a vez liberada
+        if (faliu) {
+            minhaVez = false;
+            statusTexto.innerText = "❌ Você faliu por falta de sementes!";
+            botoes.forEach(b => { if(b.id !== 'btn-reiniciar') b.disabled = true; });
+            return;
+        }
+
         if (jogadorDoTurno === playerId) {
             minhaVez = true;
             statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez de cuidar da fazenda!`;
@@ -207,11 +216,11 @@ function iniciarEscutasDoJogo() {
                 mostrarAlerta("A Seca severa queimou parte das suas reservas! Você perdeu 10 sementes.", "🔥");
             }
             else if (evento.tipo === 'chuva') {
-                meuSolo = Math.min(100, meuSolo + 15);
+                meuSolo = Math.min(100, meuSolo + 20);
                 mostrarAlerta("Chuva na hora certa! Seu solo recuperou 15% de umidade e saúde.", "🌧️");
             }
             else if (evento.tipo === 'chuva_forte') {
-                meuSolo = Math.max(0, meuSolo - 30);
+                meuSolo = Math.max(0, meuSolo - 18);
                 mostrarAlerta("Tempestade de Chuva Forte! O excesso de água causou erosão. Resistência do solo caiu em -30%!", "⛈️");
                 checarInfeccaoSoloPorTempo();
             }
@@ -228,16 +237,32 @@ function iniciarEscutasDoJogo() {
             txtSolo.innerText = meuSolo + "%";
             txtSementes.innerText = minhasSementes + " sementes";
 
+            checarDerrotaPorSementes(); // Nova validação
             checarDegradacaoSolo();
             salvarDadosNoFirebase();
         }
     });
 }
 
+// --- NOVO SISTEMA DE VALIDAÇÃO DE DERROTA ---
+function checarDerrotaPorSementes() {
+    if (minhasSementes < 20 && !jaPlantou) {
+        faliu = true;
+        minhaVez = false;
+        
+        // Desabilita os botões visuais de ação
+        const botoes = document.querySelectorAll('.btn-acao');
+        botoes.forEach(b => { if(b.id !== 'btn-reiniciar') b.disabled = true; });
+        
+        document.getElementById('status').innerText = "❌ Você faliu por falta de sementes!";
+        mostrarAlerta("Game Over! Suas sementes caíram para menos de 20 e você não tem plantações ativas para colher. Você faliu!", "📉");
+    }
+}
+
 // --- BOTÕES DE AÇÕES ---
 
 document.getElementById('btn-plantar').addEventListener('click', () => {
-    if (!minhaVez) return;
+    if (!minhaVez || faliu) return;
     if (minhasSementes < 20) return mostrarAlerta("Sementes insuficientes para realizar o plantio!", "⚠️");
     
     minhasSementes -= 20;
@@ -251,7 +276,7 @@ document.getElementById('btn-plantar').addEventListener('click', () => {
 });
 
 document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
-    if (!minhaVez) return;
+    if (!minhaVez || faliu) return;
     if (minhasSementes < 10) return mostrarAlerta("Sementes insuficientes!", "⚠️");
 
     minhasSementes -= 10;
@@ -268,7 +293,7 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
 });
 
 document.getElementById('btn-fertilizar').addEventListener('click', () => {
-    if (!minhaVez) return;
+    if (!minhaVez || faliu) return;
     if (meusFertilizantes <= 0) return mostrarAlerta("Você não tem mais estoque de biofertilizantes!", "🧪");
 
     meusFertilizantes -= 1;
@@ -283,7 +308,7 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
 });
 
 document.getElementById('btn-colher').addEventListener('click', () => {
-    if (!minhaVez) return;
+    if (!minhaVez || faliu) return;
 
     if (jaPlantou) {
         meusPontos += 50;
@@ -326,6 +351,7 @@ document.getElementById('btn-reiniciar').addEventListener('click', () => {
     meusFertilizantes = 4;
     jaPlantou = false;
     turnoAtualPartida = 1;
+    faliu = false; // Reseta o estado de falência
 
     txtSolo.innerText = meuSolo + "%";
     txtSementes.innerText = minhasSementes + " sementes";
@@ -361,8 +387,11 @@ function salvarDadosNoFirebase() {
     });
 }
 
-// CORREÇÃO DEFINITIVA: Função assíncrona usando 'get()' para evitar concorrência e loops infinitos
 async function passarTurno() {
+    // Se o jogador faliu logo antes de passar o turno, interrompe a passagem para ele
+    checarDerrotaPorSementes();
+    if (faliu) return;
+
     meuSolo = Math.max(0, meuSolo - 13);
     txtSolo.innerText = meuSolo + "%";
     
@@ -401,7 +430,6 @@ async function passarTurno() {
     await set(ref(db, 'partida/eventoAtual'), eventoSorteado);
 
     try {
-        // Coleta pontual sem deixar escuta aberta em background
         const snapshot = await get(ref(db, 'jogadores/'));
         const lista = snapshot.val();
         
@@ -421,6 +449,5 @@ async function passarTurno() {
     }
 }
 
-// Vincula a função corrigida ao escopo global para evitar erros de chamada
 window.passarTurno = passarTurno;
 window.pasarTurno = passarTurno;
