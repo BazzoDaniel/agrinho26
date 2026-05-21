@@ -1,328 +1,274 @@
-/* --- CONFIGURAÇÕES GERAIS E CORES (TEMA AGRINHO) --- */
-:root {
-    --verde-principal: #2e7d32;
-    --verde-claro: #4caf50;
-    --verde-fundo: #e8f5e9;
-    --marrom-terra: #5d4037;
-    --palha: #fff8e1;
-    --laranja-alerta: #ff9800;
-    --azul-clima: #0288d1;
-    --texto-escuro: #212121;
-}
-
+/* Configurações Globais e Reset */
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Arial', sans-serif;
-    
-    /* Configuração da imagem de fundo */
-    background-image: url('1.png');
-    background-size: cover;        /* Faz a imagem cobrir a tela inteira */
-    background-position: center;   /* Centraliza a imagem */
-    background-repeat: no-repeat;  /* Impede que a imagem fique se repetindo */
-    background-attachment: fixed;  /* Mantém o fundo fixo ao rolar a página */
-    
-    /* Um fundo escuro de segurança caso a imagem demore para carregar */
-    background-color: #2e7d32; 
-    
+    background-color: #f1f8e9; /* Tom verde bem suave com tema agrícola */
+    color: #333;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    padding: 15px;
 }
 
-/* --- CONTAINER CENTRAL --- */
+/* Container Principal do Jogo */
 #game-container {
-    background: rgba(255, 255, 255, 0.94); /* Fundo branco com leve transparência */
-    max-width: 500px;                      /* Reduzido fixo para 500px */
+    background: #ffffff;
     width: 100%;
+    max-width: 800px; /* Evita que o jogo estique demais em telas gigantes */
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* Sombra marcante para destacar o painel */
-    padding: 25px;                         /* Ajustado para equilibrar com os 500px */
-    border-top: 8px solid var(--verde-principal);
-    text-align: center; /* Mantém o título e o lobby centralizados */
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 h1 {
     text-align: center;
-    color: var(--verde-principal);
-    margin-bottom: 25px;
-    font-size: 28px;
-    letter-spacing: 0.5px;
+    color: #2e7d32;
+    font-size: 1.8rem;
+    margin-bottom: 5px;
 }
 
-h3 {
-    color: var(--marrom-terra);
-    margin-bottom: 12px;
-    font-size: 18px;
-}
-
-/* --- CLASSES AUXILIARES --- */
-.hidden {
-    display: none !important;
-}
-
-hr {
-    border: 0;
-    height: 1px;
-    background: #e2e2e2;
-    margin: 20px 0;
-}
-
-/* --- TELA DE LOBBY (ENTRADA) --- */
+/* Área de Login / Lobby */
 #lobby {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    align-items: center;
-    padding: 20px 0;
-}
-
-#player-name {
-    width: 100%;
-    max-width: 350px;
-    padding: 12px 16px;
-    border: 2px solid #cacaca;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-#player-name:focus {
-    border-color: var(--verde-claro);
-    outline: none;
-    box-shadow: 0 0 8px rgba(76, 175, 101, 0.2);
-}
-
-#btn-entrar {
-    width: 100%;
-    max-width: 350px;
-    padding: 14px;
-    background-color: var(--verde-principal);
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
-}
-
-#btn-entrar:hover {
-    background-color: var(--verde-claro);
-}
-
-#btn-entrar:active {
-    transform: scale(0.98);
-}
-
-/* --- PAINEL SUPERIOR (STATUS E CLIMA) --- */
-#painel-superior {
-    background-color: #f5f5f5;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    border-left: 4px solid #bdbdbd;
-    text-align: left; /* Alinha o status e clima de forma organizada */
-}
-
-#status {
-    font-size: 16px;
-    font-weight: bold;
-}
-
-#clima-atual {
-    transition: all 0.5s ease;
-    padding: 6px 10px;
-    background-color: #e1f5fe;
-    border-radius: 6px;
-    display: inline-block;
-    margin-top: 5px;
-}
-
-/* --- LISTA DE JOGADORES CONECTADOS --- */
-#jogadores-conectados {
-    margin-top: 15px;
-    max-height: 150px;
-    overflow-y: auto;
-    padding-right: 5px;
-    text-align: left;
-}
-
-#jogadores-conectados p {
-    background: white;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    border: 1px solid #e0e0e0;
-    font-size: 14px;
-}
-
-/* --- INFO FAZENDA LOCAL --- */
-#info-fazenda {
-    background-color: var(--palha);
-    padding: 18px;
-    border-radius: 12px;
-    border: 1px solid #ffe082;
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-#info-fazenda p {
-    font-size: 16px;
-    margin: 6px 0;
-    display: flex;
-    justify-content: space-between;
-}
-
-#status-solo, #recursos-moedas {
-    font-weight: bold;
-    color: var(--marrom-terra);
-}
-
-/* --- BOTÕES DE AÇÃO SUSTENTÁVEL --- */
-#Painel-Acoes {
-    display: flex;
-    flex-direction: column;
     gap: 12px;
-    text-align: left;
-}
-
-.btn-acao {
-    width: 100%;
-    padding: 14px 18px;
-    font-size: 15px;
-    font-weight: 600;
-    text-align: left;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    color: white;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-#btn-plantar {
-    background-color: var(--verde-principal);
-}
-
-#btn-plantar:hover:not(:disabled) {
-    background-color: var(--verde-claro);
-}
-
-#btn-Agrotoxico {
-    background-color: #d32f2f;
-}
-
-#btn-Agrotoxico:hover:not(:disabled) {
-    background-color: #ef5350;
-}
-
-/* NOVO: Estilo para o Botão de Biofertilizante */
-#btn-fertilizar {
-    background-color: #0288d1; /* Azul clima para diferenciar das sementes, ou use var(--verde-principal) */
-}
-
-#btn-fertilizar:hover:not(:disabled) {
-    background-color: #29b6f6;
-}
-
-#btn-colher {
-    background-color: #f57c00;
-}
-
-#btn-colher:hover:not(:disabled) {
-    background-color: #ff9800;
-}
-
-/* --- REGRAS PARA BOTÕES DESATIVADOS (FORA DA VEZ) --- */
-.btn-acao:disabled {
-    background-color: #e0e0e0 !important;
-    color: #9e9e9e !important;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none !important;
-}
-
-.btn-acao:active:not(:disabled) {
-    transform: translateY(2px);
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* --- TELA DE FIM DE JOGO --- */
-#tela-fim-jogo {
-    animation: popup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes popup {
-    from {
-        transform: scale(0.9);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* --- SISTEMA DE POP-UP CUSTOMIZADO --- */
-#popup-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.6); /* Fundo escuro atrás do pop-up */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Garante que fica na frente de tudo */
-}
-
-#popup-box {
-    background: white;
-    width: 90%;
     max-width: 400px;
-    padding: 25px;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    border-top: 6px solid var(--verde-principal);
-    animation: popup 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin: 40px auto;
+    width: 100%;
 }
 
-#popup-icone {
-    font-size: 45px;
-    margin-bottom: 15px;
+#lobby input {
+    padding: 14px;
+    border: 2px solid #a5d6a7;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
 }
 
-#popup-mensagem {
-    color: var(--texto-escuro);
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 1.5;
-    margin-bottom: 20px;
+#lobby input:focus {
+    border-color: #2e7d32;
 }
 
-#btn-popup-ok {
-    padding: 10px 30px;
-    background-color: var(--verde-principal);
+#lobby button {
+    background-color: #2e7d32;
     color: white;
-    font-size: 15px;
-    font-weight: bold;
     border: none;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: bold;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.2s;
 }
 
-#btn-popup-ok:hover {
-    background-color: var(--verde-claro);
+#lobby button:hover {
+    background-color: #1b5e20;
+}
+
+/* Painel de Informações Superiores */
+#painel-superior {
+    background: #e8f5e9;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 5px solid #4caf50;
+    text-align: center;
+}
+
+#status {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #1b5e20;
+}
+
+#clima-atual {
+    margin-top: 8px;
+}
+
+/* Painel de Jogadores Conectados */
+#jogadores-conectados {
+    margin-top: 15px;
+    max-height: 150px;
+    overflow-y: auto; /* Adiciona scroll se houver muitos jogadores */
+    background: rgba(255, 255, 255, 0.6);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+/* Estrutura do Tabuleiro (Grid Dinâmico) */
+#tabuleiro-container {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr; /* Lado esquerdo dados, lado direito botões */
+    gap: 20px;
+    align-items: start;
+}
+
+/* Bloco de Informações da Fazenda */
+#info-fazenda {
+    background: #fffde7;
+    border: 2px solid #fff59d;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#info-fazenda h3 {
+    color: #f57f17;
+    border-bottom: 2px solid #fff59d;
+    padding-bottom: 5px;
+}
+
+#info-fazenda p {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+#info-fazenda span {
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+/* Grid de Botões de Ação */
+#painel-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#painel-acoes h3 {
+    font-size: 1.1rem;
+    color: #37474f;
+    margin-bottom: 5px;
+}
+
+/* Botões Customizados */
+.btn-acao {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #f5f5f5;
+    color: #333;
+    border-bottom: 3px solid #ccc;
+    transition: all 0.1s ease;
+}
+
+.btn-acao:not(:disabled):hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+.btn-acao:not(:disabled):active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+}
+
+.btn-acao:disabled {
+    background-color: #e0e0e0;
+    color: #9e9e9e;
+    border-bottom-color: #bdbdbd;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Botões específicos coloridos */
+#btn-plantar { background-color: #c8e6c9; border-bottom-color: #81c784; color: #2e7d32; }
+#btn-Agrotoxico { background-color: #ffccbc; border-bottom-color: #e0f2f1; color: #c62828; }
+#btn-fertilizar { background-color: #e1f5fe; border-bottom-color: #4fc3f7; color: #0277bd; }
+#btn-colher { background-color: #ffe082; border-bottom-color: #ffb74d; color: #ff8f00; }
+
+/* Pop-ups e Telas Sobrepostas */
+#popup-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    padding: 20px;
+}
+
+#popup-box {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    animation: popupEntrada 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#popup-icone {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+#btn-popup-ok {
+    margin-top: 15px;
+    padding: 10px 24px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Classes Utilitárias */
+.hidden {
+    display: none !important;
+}
+
+/* --- ADAPTAÇÃO PARA CELULARES (MEDIA QUERY) --- */
+@media (max-width: 680px) {
+    body {
+        padding: 8px;
+    }
+
+    #game-container {
+        padding: 16px;
+        gap: 15px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    /* Transforma o Grid em coluna única no celular */
+    #tabuleiro-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .btn-acao {
+        padding: 14px 12px; /* Aumenta a área de toque no celular */
+        font-size: 0.9rem;
+    }
+}
+
+@keyframes popupEntrada {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }

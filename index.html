@@ -2,15 +2,15 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tempo de Colheita</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Solo Crítico!</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="game-container">
 
-        <h1>Tempo de Colheita</h1>
+        <h1>Solo Crítico! 🌾</h1>
 
         <div id="lobby">
             <input type="text" id="player-name" placeholder="Seu nome do produtor">
@@ -22,14 +22,14 @@
             <div id="painel-superior">
                 <p id="status">Aguardando jogadores...</p>
                 
-                <p id="clima-atual" style="font-size: 18px; font-weight: bold; color: #0288d1; margin-top: 5px;">
+                <p id="clima-atual" style="font-size: 16px; font-weight: bold; color: #0288d1; margin-top: 5px;">
                     🌤️ Clima: Tempo Limpo | 📅 Turno: <span id="turno-display">1</span>
                 </p>
 
                 <div id="jogadores-conectados"></div>
             </div>
 
-            <hr>
+            <hr style="border: 0.5px solid #e0e0e0; margin: 5px 0;">
 
             <div id="tabuleiro-container">
 
@@ -41,37 +41,37 @@
                 </div>
 
                 <div id="painel-acoes">
-    <h3>Sua Vez! Escolha uma ação sustentável:</h3>
+                    <h3>Sua Vez! Escolha uma ação:</h3>
 
-    <button id="btn-plantar" class="btn-acao">
-        🌱 Plantio Direto (Usa 20 sementes)
-    </button>
+                    <button id="btn-plantar" class="btn-acao">
+                        🌱 Plantio Direto (Usa 20 sementes)
+                    </button>
 
-    <button id="btn-Agrotoxico" class="btn-acao">
-        ⚠️ Defensivo Comum (Usa 10 sementes | Solo -20%)
-    </button>
+                    <button id="btn-Agrotoxico" class="btn-acao">
+                        ⚠️ Defensivo Comum (Usa 10 sementes | Solo -12%)
+                    </button>
 
-    <button id="btn-fertilizar" class="btn-acao">
-        🧪 Aplicar Biofertilizante (+25% Solo | 🛡️ 4 Turnos contra Pragas)
-    </button>
+                    <button id="btn-fertilizar" class="btn-acao">
+                        🧪 Aplicar Biofertilizante (+25% Solo | 🛡️ 4T Pragas)
+                    </button>
 
-    <button id="btn-colher" class="btn-acao">
-        🚜 Colher Safra (Ganha 50 pontos e +40 sementes)
-    </button>
+                    <button id="btn-colher" class="btn-acao">
+                        🚜 Colher Safra (+50 pts | +40 sementes)
+                    </button>
 
-    <button id="btn-comprar-fertilizante" class="btn-acao" style="background-color: #1565c0; color: white;">
-        🛒 Comprar 2 Biofertilizantes (Gasta 10 sementes)
-    </button>
-</div>
-
-                <div id="tela-fim-jogo" class="hidden" style="background-color: #fff3e0; border: 3px solid #ffb74d; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <h2 style="color: #e65100;">🎉 Temos um Vencedor! 🎉</h2>
-                    <p id="texto-vencedor" style="font-size: 20px; font-weight: bold;"></p>
-                    <button id="btn-reiniciar" class="btn-acao" style="background-color: #ff9800;">
-                        Jogar Novamente 🔄
+                    <button id="btn-comprar-fertilizante" class="btn-acao">
+                        🛒 Comprar 2 Biofertilizantes (Gasta 12 sementes)
                     </button>
                 </div>
 
+            </div>
+
+            <div id="tela-fim-jogo" class="hidden" style="background-color: #fff3e0; border: 3px solid #ffb74d; padding: 20px; border-radius: 12px; margin-top: 10px; text-align: center;">
+                <h2 style="color: #e65100; margin-bottom: 10px;">🎉 Temos um Vencedor! 🎉</h2>
+                <p id="texto-vencedor" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></p>
+                <button id="btn-reiniciar" class="btn-acao" style="background-color: #ff9800; border-bottom-color: #f57c00; color: white; justify-content: center;">
+                    Jogar Novamente 🔄
+                </button>
             </div>
         </div>
     </div>
@@ -79,7 +79,7 @@
     <div id="popup-container" class="hidden">
         <div id="popup-box">
             <div id="popup-icone">🌤️</div>
-            <p id="popup-mensagem">Mensagem do system...</p>
+            <p id="popup-mensagem">Mensagem do sistema...</p>
             <button id="btn-popup-ok">Entendido</button>
         </div>
     </div>
