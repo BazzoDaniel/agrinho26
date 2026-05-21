@@ -18,15 +18,24 @@
 }
 
 body {
-    background-color: var(--verde-fundo);
-    background-image: radial-gradient(rgba(46, 125, 50, 0.1) 1px, transparent 0);
-    background-size: 24px 24px;
-    color: var(--texto-escuro);
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    
+    /* Configuração da imagem de fundo */
+    background-image: url('1.png');
+    background-size: cover;        /* Faz a imagem cobrir a tela inteira */
+    background-position: center;   /* Centraliza a imagem */
+    background-repeat: no-repeat;  /* Impede que a imagem fique se repetindo */
+    background-attachment: fixed;  /* Mantém o fundo fixo ao rolar a página */
+    
+    /* Um fundo escuro de segurança caso a imagem demore para carregar */
+    background-color: #2e7d32; 
+    
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
 }
 
 /* --- CONTAINER CENTRAL --- */
