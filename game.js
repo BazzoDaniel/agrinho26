@@ -24,6 +24,9 @@ const txtSolo = document.getElementById('status-solo');
 const txtSementes = document.getElementById('recursos-moedas');
 const txtFertilizantes = document.getElementById('recursos-fertilizantes');
 
+// NOVO ELEMENTO: Se você quiser criar uma tag <span id="turno-display"> no HTML depois, ele já atualiza automático!
+const txtTurno = document.getElementById('turno-display'); 
+
 // Estado do Jogador Atual
 let playerId = null;
 let minhaVez = false;
@@ -34,6 +37,7 @@ let minhasSementes = 100;
 let meusFertilizantes = 4;
 let meusPontos = 0;
 let jaPlantou = false;
+let turnoAtualPartida = 1; // Guarda o turno localmente
 
 btnEntrar.addEventListener('click', () => {
     const nome = inputNome.value.trim();
@@ -81,12 +85,25 @@ btnEntrar.addEventListener('click', () => {
         }
     });
 
-    // 2. Escuta o turno
+    // 2. Escuta o turno e o CONTADOR DE TURNOS global
     const turnoRef = ref(db, 'partida/turnoAtual');
     onValue(turnoRef, (snapshot) => {
         const jogadorDoTurno = snapshot.val();
         const statusTexto = document.getElementById('status');
         const botoes = document.querySelectorAll('.btn-acao');
+
+        // Escuta o número do turno atual
+        onValue(ref(db, 'partida/numeroTurno'), (turnoSnapshot) => {
+            turnoAtualPartida = turnoSnapshot.val() || 1;
+            
+            // Atualiza o contador visual se ele existir na tela
+            if (txtTurno) {
+                txtTurno.innerText = turnoAtualPartida;
+            } else {
+                // Modifica o título principal ou o status para mostrar o turno caso não queira mexer no HTML agora
+                statusTexto.innerText = `[Turno ${turnoAtualPartida}] ` + statusTexto.innerText;
+            }
+        }, { onlyOnce: true });
 
         const listaChecagemRef = ref(db, 'jogadores/');
         onValue(listaChecagemRef, (jogadoresSnapshot) => {
@@ -96,18 +113,19 @@ btnEntrar.addEventListener('click', () => {
             if (!jogadorDoTurno || !listaIdsOnline.includes(jogadorDoTurno)) {
                 if (listaIdsOnline.length > 0 && listaIdsOnline[0] === playerId) {
                     set(ref(db, 'partida/turnoAtual'), playerId);
+                    set(ref(db, 'partida/numeroTurno'), 1); // Garante início no turno 1
                 }
                 return;
             }
 
             if (jogadorDoTurno === playerId) {
                 minhaVez = true;
-                statusTexto.innerText = "🟢 É a sua vez de cuidar da fazenda!";
+                statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez de cuidar da fazenda!`;
                 botoes.forEach(b => b.disabled = false);
             } else {
                 minhaVez = false;
                 const nomeDoTurno = jogadoresOnline[jogadorDoTurno] ? jogadoresOnline[jogadorDoTurno].nome : "Outro produtor";
-                statusTexto.innerText = `⏳ Vez de: ${nomeDoTurno}...`;
+                statusTexto.innerText = `⏳ Turno ${turnoAtualPartida} - Vez de: ${nomeDoTurno}...`;
                 botoes.forEach(b => b.disabled = true);
             }
         }, { onlyOnce: true });
@@ -140,22 +158,24 @@ btnEntrar.addEventListener('click', () => {
         window.ultimaRodadaEfeito = null;
         set(ref(db, 'partida/vencedor'), null);
         set(ref(db, 'partida/turnoAtual'), playerId);
+        set(ref(db, 'partida/numeroTurno'), 1); // Reseta o contador global para 1
 
         meusPontos = 0;
         meuSolo = 100;
         minhasSementes = 100;
         meusFertilizantes = 4;
         jaPlantou = false;
+        turnoAtualPartida = 1;
 
         txtSolo.innerText = meuSolo + "%";
         txtSementes.innerText = minhasSementes + " sementes";
         txtFertilizantes.innerText = meusFertilizantes;
 
         salvarDadosNoFirebase();
-        alert("🔄 Nova partida iniciada!");
+        alert("🔄 Nova partida iniciada no Turno 1!");
     });
 
-    // 4. Ouvir o Clima (ATUALIZADO COM CHUVA FORTE)
+    // 4. Ouvir o Clima
     const climaRef = ref(db, 'partida/eventoAtual');
     onValue(climaRef, (snapshot) => {
         const evento = snapshot.val();
@@ -180,9 +200,8 @@ btnEntrar.addEventListener('click', () => {
                 alert(`🌧️ Chuva na hora certa! Seu solo recuperou 15% de umidade e saúde.`);
             }
             else if (evento.tipo === 'chuva_forte') {
-                // Nova consequência climática direta na resistência
                 meuSolo = Math.max(0, meuSolo - 30);
-                alert(`⛈️ Tempestade e Chuva Forte! O excesso de água causou erosão na cabeceira e a resistência do solo despencou em -30%!`);
+                alert(`⛈️ Tempestade de Chuva Forte! O excesso de água causou lixiviação e erosão. Resistência do solo caiu em -30%!`);
                 checarInfeccaoSoloPorTempo();
             }
             else if (evento.tipo === 'praga') {
@@ -313,31 +332,60 @@ function passarTurno() {
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
 
-    // --- NOVA LÓGICA DE CLIMA COM CHUVA FORTE ---
+    // --- NOVA LÓGICA DE CLIMA COM REQUISITO DE TURNOS ---
     let eventoSorteado;
     const chance = Math.random();
 
-    if (chance < 0.40) {
-        // 40% de chance de Tempo Limpo
-        eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
-    } else if (chance < 0.55) {
-        // 15% de chance de Chuva Abençoada
-        eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15% de saúde da terra.", tipo: "chuva" };
-    } else if (chance < 0.70) {
-        // 15% de chance de Seca Prolongada
-        eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", descricao: "O calor consome recursos. Todos perdem 10 sementes.", tipo: "seca" };
-    } else if (chance < 0.85) {
-        // 15% de chance de Pragas
-        eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (abaixo de 70%) sofrem quebra e perdem 20% de saúde.", tipo: "praga" };
-    } else {
-        // 15% de chance de Chuva Forte (-30% Solo)
-        eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa lixiviação e erosão. Todos perdem 30% de resistência do solo.", tipo: "chuva_forte" };
+    // Cenário 1: Depois do turno 3 (A partir do Turno 4) -> Libera TUDO incluindo Chuva Forte
+    if (turnoAtualPartida > 3) {
+        if (chance < 0.12) {
+            // 12% exatos de chance de Chuva Forte
+            eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa lixiviação e erosão. Todos perdem 30% de solo.", tipo: "chuva_forte" };
+        } else if (chance < 0.30) {
+            // 18% exatos de chance de Pragas (0.12 + 0.18 = 0.30)
+            eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (< 70%) sofrem quebra e perdem 20% de saúde.", tipo: "praga" };
+        } else if (chance < 0.70) {
+            // 40% de chance de Tempo Limpo
+            eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
+        } else if (chance < 0.85) {
+            // 15% de chance de Chuva Abençoada
+            eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15% de saúde.", tipo: "chuva" };
+        } else {
+            // 15% de chance de Seca Prolongada
+            eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", descricao: "O calor consome recursos. Todos perdem 10 sementes.", tipo: "seca" };
+        }
+    } 
+    // Cenário 2: Turno igual a 3 -> Libera praga (18%), mas mantém Chuva Forte bloqueada
+    else if (turnoAtualPartida === 3) {
+        if (chance < 0.18) {
+            // 18% exatos de chance de Pragas
+            eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (< 70%) sofrem quebra.", tipo: "praga" };
+        } else if (chance < 0.60) {
+            // 42% de chance de Tempo Limpo
+            eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais.", tipo: "normal" };
+        } else if (chance < 0.80) {
+            // 20% de chance de Chuva Abençoada
+            eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
+        } else {
+            // 20% de chance de Seca Prolongada
+            eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
+        }
+    } 
+    // Cenário 3: Turnos 1 e 2 -> Totalmente seguro de pragas e chuva forte
+    else {
+        if (chance < 0.60) {
+            eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
+        } else if (chance < 0.80) {
+            eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
+        } else {
+            eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
+        }
     }
 
     eventoSorteado.idRodada = Date.now();
     set(ref(db, 'partida/eventoAtual'), eventoSorteado);
 
-    // Troca o Turno
+    // Troca o Turno e Incrementa o Contador Global de Turnos
     const todosJogadoresRef = ref(db, 'jogadores/');
     onValue(todosJogadoresRef, (snapshot) => {
         const lista = snapshot.val();
@@ -346,6 +394,11 @@ function passarTurno() {
         const ids = Object.keys(lista);
         let proximoIndex = (ids.indexOf(playerId) + 1) % ids.length;
         const proximoJogadorId = ids[proximoIndex];
+
+        // Se a fila voltou para o primeiro jogador, significa que uma rodada completa de turnos passou
+        if (proximoIndex === 0) {
+            set(ref(db, 'partida/numeroTurno'), turnoAtualPartida + 1);
+        }
 
         set(ref(db, 'partida/turnoAtual'), proximoJogadorId);
     }, { onlyOnce: true });
