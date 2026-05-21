@@ -111,14 +111,6 @@ btnEntrar.addEventListener('click', async () => {
         txtFertilizantes.innerText = meusFertilizantes;
 
         // Inicia as escutas do jogo de forma segura
-        iniciarEscutasDoJogo();
-
-    } catch (error) {
-        console.error("Erro ao entrar na partida:", error);
-        mostrarAlerta("Erro ao conectar com o servidor. Verifique o Firebase.", "❌");
-    }
-});
-
 // Centraliza todas as escutas em tempo real do Firebase de forma limpa
 function iniciarEscutasDoJogo() {
 
@@ -146,29 +138,36 @@ function iniciarEscutasDoJogo() {
         }
     });
 
-    // 3. Escuta de quem é a vez atual de jogar (Gerenciador de Turnos)
+    // 3. Escuta de quem é a vez atual de jogar (Gerenciador de Turnos CORRIGIDO)
     onValue(ref(db, 'partida/turnoAtual'), (snapshot) => {
         const jogadorDoTurno = snapshot.val();
         const statusTexto = document.getElementById('status');
         const botoes = document.querySelectorAll('.btn-acao');
 
-        if (!jogadorDoTurno) return;
+        // Se a partida está sem dono de turno, define o jogador atual
+        if (!jogadorDoTurno) {
+            set(ref(db, 'partida/turnoAtual'), playerId);
+            return;
+        }
 
-        // Verifica os jogadores atuais de forma assíncrona pontual para não criar loops de escuta
-        onValue(ref(db, 'jogadores/'), (jogadoresSnapshot) => {
-            const jogadoresOnline = jogadoresSnapshot.val() || {};
-            
-            if (jogadorDoTurno === playerId) {
-                minhaVez = true;
-                statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez de cuidar da fazenda!`;
-                botoes.forEach(b => b.disabled = false);
-            } else {
-                minhaVez = false;
-                const nomeDoTurno = jogadoresOnline[jogadorDoTurno] ? jogadoresOnline[jogadorDoTurno].nome : "Outro produtor";
-                statusTexto.innerText = `⏳ Turno ${turnoAtualPartida} - Vez de: ${nomeDoTurno}...`;
-                botoes.forEach(b => b.disabled = true);
-            }
-        }, { onlyOnce: true });
+        if (jogadorDoTurno === playerId) {
+            minhaVez = true;
+            statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez de cuidar da fazenda!`;
+            botoes.forEach(b => {
+                // Não deixa o botão de reiniciar apagado se o jogo acabar
+                if(b.id !== 'btn-reiniciar') b.disabled = false;
+            });
+        } else {
+            minhaVez = false;
+            // Busca o nome do oponente sem travar os botões locais
+            get(ref(db, `jogadores/${jogadorDoTurno}`)).then((playerSnap) => {
+                const nomeOponente = playerSnap.exists() ? playerSnap.val().nome : "Outro produtor";
+                statusTexto.innerText = `⏳ Turno ${turnoAtualPartida} - Vez de: ${nomeOponente}...`;
+            });
+            botoes.forEach(b => {
+                if(b.id !== 'btn-reiniciar') b.disabled = true;
+            });
+        }
     });
 
     // 4. Escuta o Vencedor da Partida
@@ -203,7 +202,6 @@ function iniciarEscutasDoJogo() {
 
         txtClima.innerText = `${evento.icone} Clima: ${evento.nome} (${evento.descricao ?? ''})`;
 
-        // CORREÇÃO: Se for turno 1, impede que o efeito negativo da rodada anterior aplique dano
         if (turnoAtualPartida === 1 && evento.tipo !== 'normal') {
             return;
         }
@@ -242,54 +240,6 @@ function iniciarEscutasDoJogo() {
         }
     });
 }
-
-// --- BOTÕES DE AÇÕES DO TABULEIRO ---
-
-document.getElementById('btn-plantar').addEventListener('click', () => {
-    if (!minhaVez) return;
-    if (minhasSementes < 20) return mostrarAlerta("Sementes insuficientes para realizar o plantio!", "⚠️");
-    
-    minhasSementes -= 20;
-    jaPlantou = true;
-    
-    txtSementes.innerText = minhasSementes + " sementes";
-    mostrarAlerta("Você usou o Plantio Direto! O solo continua protegido pela palhada.", "🌱");
-    
-    salvarDadosNoFirebase();
-    passarTurno();
-});
-
-document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
-    if (!minhaVez) return;
-    if (minhasSementes < 10) return mostrarAlerta("Sementes insuficientes!", "⚠️");
-
-    minhasSementes -= 10;
-    meuSolo = Math.max(0, meuSolo - 20); 
-    jaPlantou = true; 
-
-    txtSementes.innerText = minhasSementes + " sementes";
-    txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Você usou defensivos químicos comuns. A saúde do solo caiu para ${meuSolo}%!`, "⚠️");
-    
-    checarDegradacaoSolo();
-    salvarDadosNoFirebase();
-    passarTurno();
-});
-
-document.getElementById('btn-fertilizar').addEventListener('click', () => {
-    if (!minhaVez) return;
-    if (meusFertilizantes <= 0) return mostrarAlerta("Você não tem mais estoque de biofertilizantes!", "🧪");
-
-    meusFertilizantes -= 1;
-    meuSolo = Math.min(100, meuSolo + 25); 
-
-    txtFertilizantes.innerText = meusFertilizantes;
-    txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Biofertilizante aplicado! Resistência do solo aumentada em +25%.`, "🧪");
-
-    salvarDadosNoFirebase();
-    passarTurno();
-});
 
 document.getElementById('btn-colher').addEventListener('click', () => {
     if (!minhaVez) return;
