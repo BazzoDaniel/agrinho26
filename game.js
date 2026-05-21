@@ -47,10 +47,10 @@ let jaPlantou = false;
 let turnoAtualPartida = 1;
 let turnosProtegidosPraga = 0; 
 
+// Função corrigida para disparar o Alerta customizado sem travar o código
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = message; // Proteção interna contra a quebra de string
-    popupMensagem.innerText = mensagem;
+    popupMensagem.innerText = mensagem; // Aqui foi removida a linha duplicada com 'message'
     popupContainer.classList.remove('hidden');
 }
 
