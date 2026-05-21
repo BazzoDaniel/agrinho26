@@ -55,7 +55,7 @@ function mostrarAlerta(mensagem, icone = "📢") {
 
 btnPopupOk.addEventListener('click', () => {
     popupContainer.classList.add('hidden');
-    // Se o jogador faliu, após ele ler o alerta de Game Over, ele é desconectado e mandado ao lobby
+    // Se o jogador faliu, após fechar o pop-up ele é expulso para a tela inicial
     if (faliu) {
         executarSaidaEGameOver();
     }
@@ -72,12 +72,12 @@ btnEntrar.addEventListener('click', async () => {
         const jogadoresSnapshot = await get(ref(db, 'jogadores/'));
         const existemJogadores = jogadoresSnapshot.exists();
 
-        // Se a partida estiver vazia ou reiniciando, redefine as configurações globais
         if (!existemJogadores) {
             await set(ref(db, 'partida'), {
                 numeroTurno: 1,
                 turnoAtual: playerId, 
                 vencedor: null,
+                controleReset: 0, // Gatilho de reset sincronizado
                 eventoAtual: {
                     nome: "Tempo Limpo",
                     icone: "🌤️",
@@ -89,7 +89,6 @@ btnEntrar.addEventListener('click', async () => {
             window.ultimaRodadaEfeito = null;
         }
 
-        // Reset local de variáveis para o novo login
         meusPontos = 0;
         meuSolo = 100;
         minhasSementes = 100;
@@ -122,11 +121,22 @@ btnEntrar.addEventListener('click', async () => {
 
     } catch (error) {
         console.error("Erro ao entrar na partida:", error);
-        mostrarAlerta("Erro ao conectar com o servidor. Verifique o Firebase.", "❌");
+        mostrarAlerta("Erro ao conectar com o servidor.", "❌");
     }
 });
 
 function iniciarEscutasDoJogo() {
+    // ESCUTA DE RESET GLOBAL: Recarrega a página de todos os jogadores sincronizadamente
+    onValue(ref(db, 'partida/controleReset'), (snapshot) => {
+        const valorReset = snapshot.val();
+        if (valorReset && valorReset > 0) {
+            // Pequeno delay para garantir que o Firebase limpou os dados antes do reload
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        }
+    });
+
     onValue(ref(db, 'jogadores/'), (snapshot) => {
         const dados = snapshot.val();
         listaJogadores.innerHTML = "<h3>Produtores na Partida:</h3>";
@@ -134,7 +144,7 @@ function iniciarEscutasDoJogo() {
         if (dados) {
             const listaIds = Object.keys(dados);
             
-            // LÓGICA DE VITÓRIA POR W.O. (Se sobrar apenas 1 jogador na partida ativa)
+            // Vitória automática por W.O. (Se restou apenas 1 jogador em jogo)
             if (listaIds.length === 1 && playerId && listaIds[0] === playerId && turnoAtualPartida > 1) {
                 get(ref(db, 'partida/vencedor')).then((vencedorSnap) => {
                     if (!vencedorSnap.val()) {
@@ -164,13 +174,11 @@ function iniciarEscutasDoJogo() {
         const statusTexto = document.getElementById('status');
         const botoes = document.querySelectorAll('.btn-acao');
 
-        if (!jogadorDoTurno) return;
-
-        if (faliu) return; // Se faliu, ignora a escuta de turnos locais
+        if (!jogadorDoTurno || faliu) return;
 
         if (jogadorDoTurno === playerId) {
             minhaVez = true;
-            const shieldStatus = turnosProtegidosPraga > 0 ? ` [🛡️ Escudo químico ativo: ${turnosProtegidosPraga}T]` : "";
+            const shieldStatus = turnosProtegidosPraga > 0 ? ` [🛡️ Escudo ativo: ${turnosProtegidosPraga}T]` : "";
             statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez!${shieldStatus}`;
             botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = false; });
         } else {
@@ -206,10 +214,7 @@ function iniciarEscutasDoJogo() {
         const evento = snapshot.val();
         const txtClima = document.getElementById('clima-atual');
 
-        if (!evento) {
-            txtClima.innerText = "🌤️ Clima: Tempo Limpo";
-            return;
-        }
+        if (!evento) return;
 
         txtClima.innerText = `${evento.icone} Clima: ${evento.nome} (${evento.descricao ?? ''})`;
 
@@ -220,7 +225,7 @@ function iniciarEscutasDoJogo() {
 
             if (evento.tipo === 'seca') {
                 minhasSementes = Math.max(0, minhasSementes - 10);
-                mostrarAlerta("A Seca severa queimou parte das suas reservas! Você perdeu 10 sementes.", "🔥");
+                mostrarAlerta("A Seca severa queimou suas reservas! Você perdeu 10 sementes.", "🔥");
             }
             else if (evento.tipo === 'chuva') {
                 meuSolo = Math.min(100, meuSolo + 15);
@@ -233,13 +238,13 @@ function iniciarEscutasDoJogo() {
             }
             else if (evento.tipo === 'praga') {
                 if (turnosProtegidosPraga > 0) {
-                    mostrarAlerta(`Ataque de Pragas neutralizado! O efeito do Defensivo Químico protegeu sua plantação. (${turnosProtegidosPraga}T restantes)`, "🛡️");
+                    mostrarAlerta(`Ataque de Pragas repelido pelo efeito do Defensivo Químico. (${turnosProtegidosPraga}T restantes)`, "🛡️");
                 } else if (meuSolo < 70) {
                     meuSolo = Math.max(0, meuSolo - 20);
                     jaPlantou = false; 
-                    mostrarAlerta("Infestação de Pragas! Como seu solo estava fraco (< 70%) e desprotegido por defensivos, a lavoura foi destruída.", "🐛");
+                    mostrarAlerta("Infestação de Pragas! Como seu solo estava fraco (< 70%), a lavoura foi destruída.", "🐛");
                 } else {
-                    mostrarAlerta("Infestação de Pragas! Seu solo resistiu por estar forte e bem estruturado.", "🛡️");
+                    mostrarAlerta("Infestação de Pragas! Seu solo resistiu por estar forte.", "🛡️");
                 }
             }
 
@@ -253,54 +258,45 @@ function iniciarEscutasDoJogo() {
     });
 }
 
-// LÓGICA DE GAME OVER E RETIRADA DA PARTIDA
-async function checarDerrotaPorSementes() {
-    if (minhasSementes < 20 && !jaPlantou && !faliu) {
+// LÓGICA DE GAME OVER: Menos de 20 sementes resulta em expulsão imediata
+function checarDerrotaPorSementes() {
+    if (minhasSementes < 20 && !faliu) {
         faliu = true;
         minhaVez = false;
         
         const botoes = document.querySelectorAll('.btn-acao');
         botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = true; });
         
-        document.getElementById('status').innerText = "❌ Você faliu!";
-        mostrarAlerta("Game Over! Suas sementes acabaram e você não tem plantio ativo. Você será redirecionado para o menu.", "📉");
+        document.getElementById('status').innerText = "❌ Você Faliu!";
+        mostrarAlerta("Game Over! Seus recursos caíram para menos de 20 sementes. Você foi eliminado da fazenda.", "📉");
     }
 }
 
-// Remove o jogador do Firebase e limpa a tela para reinserção de nome
 async function executarSaidaEGameOver() {
     if (!playerId) return;
-    
     const meuIdAntigo = playerId;
-    playerId = null; // Desvincula o ID local para evitar gravações fantasmas
+    playerId = null; 
     
-    // Se era a vez do jogador que faliu, passa o turno antes de deletá-lo
     if (minhaVez) {
         await forcarPassagemTurnoPorFalecimento(meuIdAntigo);
     }
     
     await remove(ref(db, 'jogadores/' + meuIdAntigo));
     
-    // Manda de volta para o Lobby de Nome
     gameBoard.classList.add('hidden');
     lobby.classList.remove('hidden');
     inputNome.value = "";
 }
 
-// Força a passagem de turno caso o jogador saia ou faleça na sua vez
 async function forcarPassagemTurnoPorFalecimento(idFalecido) {
     try {
         const snapshot = await get(ref(db, 'jogadores/'));
         const lista = snapshot.val();
         if (lista) {
-            const ids = Object.keys(lista);
-            if (ids.length > 1) {
-                let proximoIndex = (ids.indexOf(idFalecido) + 1) % ids.length;
-                const proximoJogadorId = ids[proximoIndex];
-                if (proximoIndex === 0) {
-                    await set(ref(db, 'partida/numeroTurno'), turnoAtualPartida + 1);
-                }
-                await set(ref(db, 'partida/turnoAtual'), proximoJogadorId);
+            const ids = Object.keys(lista).filter(id => id !== idFalecido);
+            if (ids.length > 0) {
+                let proximoIndex = 0;
+                await set(ref(db, 'partida/turnoAtual'), ids[proximoIndex]);
             }
         }
     } catch(e) { console.error(e); }
@@ -317,8 +313,9 @@ document.getElementById('btn-plantar').addEventListener('click', () => {
     txtSementes.innerText = minhasSementes + " sementes";
     mostrarAlerta("Você usou o Plantio Direto! O solo continua protegido pela palhada.", "🌱");
     
+    checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    passarTurno();
+    if (!faliu) passarTurno();
 });
 
 document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
@@ -332,11 +329,12 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
 
     txtSementes.innerText = minhasSementes + " sementes";
     txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Defensivo químico aplicado. O solo perdeu saúde (-12%), mas sua lavoura está protegida contra insetos por 4 turnos!`, "⚠️");
+    mostrarAlerta(`Defensivo aplicado. Solo degradado (-12%), mas protegido contra insetos por 4 turnos!`, "⚠️");
     
+    checarDerrotaPorSementes();
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
-    passarTurno();
+    if (!faliu) passarTurno();
 });
 
 document.getElementById('btn-fertilizar').addEventListener('click', () => {
@@ -348,7 +346,7 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
 
     txtFertilizantes.innerText = meusFertilizantes;
     txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Biofertilizante aplicado com sucesso! Nutrição do solo aumentada em +25%.`, "🧪");
+    mostrarAlerta(`Biofertilizante aplicado! Nutrição do solo aumentada em +25%.`, "🧪");
 
     salvarDadosNoFirebase();
     passarTurno();
@@ -356,7 +354,7 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
 
 document.getElementById('btn-comprar-fertilizante').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
-    if (minhasSementes < 12) return mostrarAlerta("Você precisa de pelo menos 12 sementes para comprar suprimentos!", "⚠️");
+    if (minhasSementes < 12) return mostrarAlerta("Sementes insuficientes para comprar suprimentos!", "⚠️");
 
     minhasSementes -= 12; 
     meusFertilizantes += 2;
@@ -382,7 +380,6 @@ document.getElementById('btn-colher').addEventListener('click', () => {
         txtSementes.innerText = minhasSementes + " sementes";
         txtSolo.innerText = meuSolo + "%";
 
-        // MODIFICAÇÃO: Meta de vitória reduzida de 300 para 250 pontos
         if (meusPontos >= 250) {
             set(ref(db, 'partida/vencedor'), inputNome.value.trim());
         }
@@ -390,43 +387,36 @@ document.getElementById('btn-colher').addEventListener('click', () => {
         mostrarAlerta("Você não tem nenhuma plantação pronta para colher!", "❌");
     }
 
+    checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    passarTurno();
+    if (!faliu) passarTurno();
 });
 
-document.getElementById('btn-reiniciar').addEventListener('click', () => {
-    set(ref(db, 'partida/eventoAtual'), {
-        nome: "Tempo Limpo",
-        icone: "🌤️",
-        descricao: "Condições ideais para o manejo.",
-        tipo: "normal",
-        idRodada: Date.now()
-    });
-    window.ultimaRodadaEfeito = null;
-    set(ref(db, 'partida/vencedor'), null);
-    set(ref(db, 'partida/turnoAtual'), playerId);
-    set(ref(db, 'partida/numeroTurno'), 1);
+// FUNÇÃO DE REINÍCIO FORÇADO GLOBAL (Limpa o banco e dá F5 em todos os navegadores conectados)
+async function acionarResetGlobalSincronizado() {
+    try {
+        // 1. Limpa a lista de jogadores e redefine as variáveis globais da partida
+        await set(ref(db, 'jogadores'), null);
+        await set(ref(db, 'partida'), {
+            numeroTurno: 1,
+            turnoAtual: "",
+            vencedor: null,
+            controleReset: Date.now(), // Atualiza o gatilho para forçar o recarregamento (F5) de todos
+            eventoAtual: {
+                nome: "Tempo Limpo",
+                icone: "🌤️",
+                descricao: "Condições ideais para o manejo.",
+                tipo: "normal",
+                idRodada: Date.now()
+            }
+        });
+    } catch (e) {
+        console.error("Erro no processo de reset:", e);
+    }
+}
 
-    meusPontos = 0;
-    meuSolo = 100;
-    minhasSementes = 100;
-    meusFertilizantes = 4;
-    jaPlantou = false;
-    turnoAtualPartida = 1;
-    faliu = false;
-    turnosProtegidosPraga = 0;
-
-    txtSolo.innerText = meuSolo + "%";
-    txtSementes.innerText = minhasSementes + " sementes";
-    txtFertilizantes.innerText = meusFertilizantes;
-
-    salvarDadosNoFirebase();
-    mostrarAlerta("Nova partida iniciada no Turno 1 com Tempo Limpo!", "🔄");
-});
-
-document.getElementById('btn-reset-global').addEventListener('click', () => {
-    document.getElementById('btn-reiniciar').click();
-});
+document.getElementById('btn-reiniciar').addEventListener('click', acionarResetGlobalSincronizado);
+document.getElementById('btn-reset-global').addEventListener('click', acionarResetGlobalSincronizado);
 
 function checarDegradacaoSolo() {
     if (meuSolo <= 0) {
@@ -456,7 +446,6 @@ function salvarDadosNoFirebase() {
 }
 
 async function passarTurno() {
-    await checarDerrotaPorSementes();
     if (faliu) return;
 
     if (turnosProtegidosPraga > 0) {
@@ -478,23 +467,12 @@ async function passarTurno() {
         else if (chance < 0.90) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
     }
-    else if (turnoAtualPartida > 3) {
+    else {
         if (chance < 0.05) eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 30% de solo.", tipo: "chuva_forte" };
         else if (chance < 0.12) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (< 70%) perdem 20% de saúde.", tipo: "praga" };
         else if (chance < 0.65) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
         else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15%.", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", descricao: "O calor consome recursos. Todos perdem 10 sementes.", tipo: "seca" };
-    } 
-    else if (turnoAtualPartida === 3) {
-        if (chance < 0.08) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", tipo: "praga" };
-        else if (chance < 0.65) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
-        else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
-        else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
-    } 
-    else { 
-        if (chance < 0.65) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
-        else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
-        else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
     }
 
     eventoSorteado.idRodada = Date.now();
