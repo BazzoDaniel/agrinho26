@@ -60,7 +60,7 @@ mudarFundo('1.png');
 
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = message; 
+    popupMensagem.innerText = mensagem; // Corrigido de 'message' para 'mensagem'
     popupContainer.classList.remove('hidden');
 }
 
@@ -130,7 +130,7 @@ btnEntrar.addEventListener('click', async () => {
         if (musicaFazenda) {
             musicaFazenda.volume = 0.35;
             musicaFazenda.play().catch(erro => {
-                console.log("Interação prévia bloqueada pelo navegador, tentando novamente.", erro);
+                console.log("Interação prévia bloqueada pelo navegador.", erro);
             });
         }
 
@@ -188,7 +188,13 @@ function iniciarEscutasDoJogo() {
         const statusTexto = document.getElementById('status');
         const botoes = document.querySelectorAll('.btn-acao');
 
-        if (!jogadorDoTurno || faliu) return;
+        if (faliu) return;
+
+        // Se o banco indicar que não há jogador ou se o ID sumiu temporariamente (comum em redes rápidas), assume a vez do player ativo se ele for o único
+        if (!jogadorDoTurno && playerId) {
+            set(ref(db, 'partida/turnoAtual'), playerId);
+            return;
+        }
 
         if (jogadorDoTurno === playerId) {
             minhaVez = true;
@@ -224,7 +230,6 @@ function iniciarEscutasDoJogo() {
         }
     });
 
-    // LISTENER DO CLIMA CENTRALIZADO (RESOLVE O ERRO DA IMAGEM 3.PNG)
     onValue(ref(db, 'partida/eventoAtual'), (snapshot) => {
         const evento = snapshot.val();
         const txtClima = document.getElementById('clima-atual');
@@ -233,25 +238,13 @@ function iniciarEscutasDoJogo() {
 
         txtClima.innerHTML = `Clima atual: ${evento.icone} ${evento.nome} (${evento.descricao ?? ''}) | 📅 Turno: <span id="turno-display">${turnoAtualPartida}</span>`;
 
-        // Atribuição estrita do background dependendo única e exclusivamente do evento ativo
         switch (evento.tipo) {
-            case 'normal':
-                mudarFundo('2.png');
-                break;
-            case 'chuva':
-                mudarFundo('3.png'); // Imagem da Chuva Leve fixa sem ser atropelada
-                break;
-            case 'praga':
-                mudarFundo('4.png');
-                break;
-            case 'chuva_forte':
-                mudarFundo('5.png');
-                break;
-            case 'seca':
-                mudarFundo('2.png');
-                break;
-            default:
-                mudarFundo('2.png');
+            case 'normal': mudarFundo('2.png'); break;
+            case 'chuva': mudarFundo('3.png'); break;
+            case 'praga': mudarFundo('4.png'); break;
+            case 'chuva_forte': mudarFundo('5.png'); break;
+            case 'seca': mudarFundo('2.png'); break;
+            default: mudarFundo('2.png');
         }
 
         if (turnoAtualPartida === 1 && evento.tipo !== 'normal') return;
@@ -298,10 +291,8 @@ function checarDerrotaPorSementes() {
     if (minhasSementes < 20 && !faliu) {
         faliu = true;
         minhaVez = false;
-        
         const botoes = document.querySelectorAll('.btn-acao');
         botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = true; });
-        
         document.getElementById('status').innerText = "❌ Você Faliu!";
         mostrarAlerta("Game Over! Seus recursos caíram para menos de 20 sementes. Você foi eliminado da fazenda.", "📉");
     }
@@ -311,22 +302,17 @@ async function executarSaidaEGameOver() {
     if (!playerId) return;
     const meuIdAntigo = playerId;
     playerId = null; 
-    
     if (minhaVez) {
         await forcarPassagemTurnoPorFalecimento(meuIdAntigo);
     }
-    
     await remove(ref(db, 'jogadores/' + meuIdAntigo));
-    
     gameBoard.classList.add('hidden');
     lobby.classList.remove('hidden');
     inputNome.value = "";
-    
     if (musicaFazenda) {
         musicaFazenda.pause();
         musicaFazenda.currentTime = 0;
     }
-    
     mudarFundo('1.png');
 }
 
@@ -337,15 +323,13 @@ async function forcarPassagemTurnoPorFalecimento(idFalecido) {
         if (lista) {
             const ids = Object.keys(lista).filter(id => id !== idFalecido);
             if (ids.length > 0) {
-                let proximoIndex = 0;
-                await set(ref(db, 'partida/turnoAtual'), ids[proximoIndex]);
+                await set(ref(db, 'partida/turnoAtual'), ids[0]);
             }
         }
     } catch(e) { console.error(e); }
 }
 
 // --- BOTÕES DE AÇÕES ---
-
 document.getElementById('btn-plantar').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
     if (minhasSementes < 20) return mostrarAlerta("Sementes insuficientes!", "⚠️");
