@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set, onValue, onDisconnect, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, set, onValue, onDisconnect, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDtc5jCTDrcweaPUfTS_OoZQcGJsNhQV0k",
@@ -47,15 +47,18 @@ let jaPlantou = false;
 let turnoAtualPartida = 1;
 let turnosProtegidosPraga = 0; 
 
-// Função corrigida para disparar o Alerta customizado sem travar o código
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = mensagem; // Aqui foi removida a linha duplicada com 'message'
+    popupMensagem.innerText = mensagem;
     popupContainer.classList.remove('hidden');
 }
 
 btnPopupOk.addEventListener('click', () => {
     popupContainer.classList.add('hidden');
+    // Se o jogador faliu, após ele ler o alerta de Game Over, ele é desconectado e mandado ao lobby
+    if (faliu) {
+        executarSaidaEGameOver();
+    }
 });
 
 btnEntrar.addEventListener('click', async () => {
@@ -69,6 +72,7 @@ btnEntrar.addEventListener('click', async () => {
         const jogadoresSnapshot = await get(ref(db, 'jogadores/'));
         const existemJogadores = jogadoresSnapshot.exists();
 
+        // Se a partida estiver vazia ou reiniciando, redefine as configurações globais
         if (!existemJogadores) {
             await set(ref(db, 'partida'), {
                 numeroTurno: 1,
@@ -84,6 +88,15 @@ btnEntrar.addEventListener('click', async () => {
             });
             window.ultimaRodadaEfeito = null;
         }
+
+        // Reset local de variáveis para o novo login
+        meusPontos = 0;
+        meuSolo = 100;
+        minhasSementes = 100;
+        meusFertilizantes = 4;
+        jaPlantou = false;
+        turnosProtegidosPraga = 0;
+        faliu = false;
 
         await set(playerRef, {
             nome: nome,
@@ -119,7 +132,18 @@ function iniciarEscutasDoJogo() {
         listaJogadores.innerHTML = "<h3>Produtores na Partida:</h3>";
         
         if (dados) {
-            Object.keys(dados).forEach(id => {
+            const listaIds = Object.keys(dados);
+            
+            // LÓGICA DE VITÓRIA POR W.O. (Se sobrar apenas 1 jogador na partida ativa)
+            if (listaIds.length === 1 && playerId && listaIds[0] === playerId && turnoAtualPartida > 1) {
+                get(ref(db, 'partida/vencedor')).then((vencedorSnap) => {
+                    if (!vencedorSnap.val()) {
+                        set(ref(db, 'partida/vencedor'), dados[playerId].nome + " (Único Sobrevivente)");
+                    }
+                });
+            }
+
+            listaIds.forEach(id => {
                 const pShield = dados[id].turnosProtegidos > 0 ? ` 🛡️(${dados[id].turnosProtegidos}T)` : "";
                 listaJogadores.innerHTML += `
                     <p>🚜 <b>${dados[id].nome}</b> ${pShield}<br>
@@ -142,25 +166,20 @@ function iniciarEscutasDoJogo() {
 
         if (!jogadorDoTurno) return;
 
-        if (faliu) {
-            minhaVez = false;
-            statusTexto.innerText = "❌ Você faliu por falta de sementes!";
-            botoes.forEach(b => { if(b.id !== 'btn-reiniciar') b.disabled = true; });
-            return;
-        }
+        if (faliu) return; // Se faliu, ignora a escuta de turnos locais
 
         if (jogadorDoTurno === playerId) {
             minhaVez = true;
             const shieldStatus = turnosProtegidosPraga > 0 ? ` [🛡️ Escudo químico ativo: ${turnosProtegidosPraga}T]` : "";
             statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez!${shieldStatus}`;
-            botoes.forEach(b => { if(b.id !== 'btn-reiniciar') b.disabled = false; });
+            botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = false; });
         } else {
             minhaVez = false;
             get(ref(db, `jogadores/${jogadorDoTurno}`)).then((playerSnap) => {
                 const nomeOponente = playerSnap.exists() ? playerSnap.val().nome : "Outro produtor";
                 statusTexto.innerText = `⏳ Turno ${turnoAtualPartida} - Vez de: ${nomeOponente}...`;
             });
-            botoes.forEach(b => { if(b.id !== 'btn-reiniciar') b.disabled = true; });
+            botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = true; });
         }
     });
 
@@ -176,7 +195,7 @@ function iniciarEscutasDoJogo() {
             statusTexto.innerText = "🏁 Partida Encerrada!";
             if (painelAcoes) painelAcoes.classList.add('hidden');
             telaFimJogo.classList.remove('hidden');
-            textoVencedor.innerText = `O Produtor ${vencedor} alcançou a meta de sustentabilidade e venceu a partida! 🌾🚜`;
+            textoVencedor.innerText = `O Produtor ${vencedor} alcançou a meta e venceu a partida! 🌾🚜`;
         } else {
             if (painelAcoes) painelAcoes.classList.remove('hidden');
             telaFimJogo.classList.add('hidden');
@@ -213,7 +232,6 @@ function iniciarEscutasDoJogo() {
                 checarInfeccaoSoloPorTempo();
             }
             else if (evento.tipo === 'praga') {
-                // MODIFICAÇÃO: O escudo agora pertence à aplicação de defensivo
                 if (turnosProtegidosPraga > 0) {
                     mostrarAlerta(`Ataque de Pragas neutralizado! O efeito do Defensivo Químico protegeu sua plantação. (${turnosProtegidosPraga}T restantes)`, "🛡️");
                 } else if (meuSolo < 70) {
@@ -235,15 +253,57 @@ function iniciarEscutasDoJogo() {
     });
 }
 
-function checarDerrotaPorSementes() {
-    if (minhasSementes < 20 && !jaPlantou) {
+// LÓGICA DE GAME OVER E RETIRADA DA PARTIDA
+async function checarDerrotaPorSementes() {
+    if (minhasSementes < 20 && !jaPlantou && !faliu) {
         faliu = true;
         minhaVez = false;
+        
         const botoes = document.querySelectorAll('.btn-acao');
-        botoes.forEach(b => { if(b.id !== 'btn-reiniciar') b.disabled = true; });
-        document.getElementById('status').innerText = "❌ Você faliu por falta de sementes!";
-        mostrarAlerta("Game Over! Suas sementes acabaram e você não tem plantio ativo.", "📉");
+        botoes.forEach(b => { if(b.id !== 'btn-reset-global' && b.id !== 'btn-reiniciar') b.disabled = true; });
+        
+        document.getElementById('status').innerText = "❌ Você faliu!";
+        mostrarAlerta("Game Over! Suas sementes acabaram e você não tem plantio ativo. Você será redirecionado para o menu.", "📉");
     }
+}
+
+// Remove o jogador do Firebase e limpa a tela para reinserção de nome
+async function executarSaidaEGameOver() {
+    if (!playerId) return;
+    
+    const meuIdAntigo = playerId;
+    playerId = null; // Desvincula o ID local para evitar gravações fantasmas
+    
+    // Se era a vez do jogador que faliu, passa o turno antes de deletá-lo
+    if (minhaVez) {
+        await forcarPassagemTurnoPorFalecimento(meuIdAntigo);
+    }
+    
+    await remove(ref(db, 'jogadores/' + meuIdAntigo));
+    
+    // Manda de volta para o Lobby de Nome
+    gameBoard.classList.add('hidden');
+    lobby.classList.remove('hidden');
+    inputNome.value = "";
+}
+
+// Força a passagem de turno caso o jogador saia ou faleça na sua vez
+async function forcarPassagemTurnoPorFalecimento(idFalecido) {
+    try {
+        const snapshot = await get(ref(db, 'jogadores/'));
+        const lista = snapshot.val();
+        if (lista) {
+            const ids = Object.keys(lista);
+            if (ids.length > 1) {
+                let proximoIndex = (ids.indexOf(idFalecido) + 1) % ids.length;
+                const proximoJogadorId = ids[proximoIndex];
+                if (proximoIndex === 0) {
+                    await set(ref(db, 'partida/numeroTurno'), turnoAtualPartida + 1);
+                }
+                await set(ref(db, 'partida/turnoAtual'), proximoJogadorId);
+            }
+        }
+    } catch(e) { console.error(e); }
 }
 
 // --- BOTÕES DE AÇÕES ---
@@ -268,7 +328,7 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     minhasSementes -= 10;
     meuSolo = Math.max(0, meuSolo - 12); 
     jaPlantou = true; 
-    turnosProtegidosPraga = 4; // MODIFICAÇÃO: A proteção de 4 turnos contra insetos agora ativa aqui!
+    turnosProtegidosPraga = 4; 
 
     txtSementes.innerText = minhasSementes + " sementes";
     txtSolo.innerText = meuSolo + "%";
@@ -285,7 +345,6 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
 
     meusFertilizantes -= 1;
     meuSolo = Math.min(100, meuSolo + 25); 
-    // MODIFICAÇÃO: Linha de proteção contra pragas removida do biofertilizante
 
     txtFertilizantes.innerText = meusFertilizantes;
     txtSolo.innerText = meuSolo + "%";
@@ -323,7 +382,8 @@ document.getElementById('btn-colher').addEventListener('click', () => {
         txtSementes.innerText = minhasSementes + " sementes";
         txtSolo.innerText = meuSolo + "%";
 
-        if (meusPontos >= 300) {
+        // MODIFICAÇÃO: Meta de vitória reduzida de 300 para 250 pontos
+        if (meusPontos >= 250) {
             set(ref(db, 'partida/vencedor'), inputNome.value.trim());
         }
     } else {
@@ -364,9 +424,7 @@ document.getElementById('btn-reiniciar').addEventListener('click', () => {
     mostrarAlerta("Nova partida iniciada no Turno 1 com Tempo Limpo!", "🔄");
 });
 
-// Vincula o novo botão flutuante de canto à mesma lógica de reiniciar a partida
 document.getElementById('btn-reset-global').addEventListener('click', () => {
-    // Dispara o clique do botão de reiniciar original para reaproveitar toda a lógica
     document.getElementById('btn-reiniciar').click();
 });
 
@@ -386,7 +444,7 @@ function checarInfeccaoSoloPorTempo() {
 }
 
 function salvarDadosNoFirebase() {
-    if (!playerId) return;
+    if (!playerId || faliu) return;
     update(ref(db, 'jogadores/' + playerId), {
         pontuacao: meusPontos,
         solo: meuSolo,
@@ -398,7 +456,7 @@ function salvarDadosNoFirebase() {
 }
 
 async function passarTurno() {
-    checarDerrotaPorSementes();
+    await checarDerrotaPorSementes();
     if (faliu) return;
 
     if (turnosProtegidosPraga > 0) {
@@ -463,4 +521,3 @@ async function passarTurno() {
 }
 
 window.passarTurno = passarTurno;
-window.pasarTurno = passarTurno;
