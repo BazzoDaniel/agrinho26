@@ -46,7 +46,9 @@ let meuSolo = 100;
 let minhasSementes = 100;
 let meusFertilizantes = 4;
 let meusPontos = 0;
-let jaPlantou = false;
+
+// NOVO SISTEMA DE 4 ESTÁGIOS: "vazio" -> "semeado" -> "crescendo" -> "pronto"
+let estagioLavoura = "vazio"; 
 let turnoAtualPartida = 1;
 let turnosProtegidosPraga = 0; 
 
@@ -103,7 +105,7 @@ btnEntrar.addEventListener('click', async () => {
         meuSolo = 100;
         minhasSementes = 100;
         meusFertilizantes = 4;
-        jaPlantou = false;
+        estagioLavoura = "vazio";
         turnosProtegidosPraga = 0;
         faliu = false;
 
@@ -113,7 +115,7 @@ btnEntrar.addEventListener('click', async () => {
             solo: meuSolo,
             sementes: minhasSementes,
             fertilizantes: meusFertilizantes,
-            plantou: jaPlantou,
+            estagio: estagioLavoura, 
             turnosProtegidos: turnosProtegidosPraga,
             online: true
         });
@@ -169,9 +171,17 @@ function iniciarEscutasDoJogo() {
 
             listaIds.forEach(id => {
                 const pShield = dados[id].turnosProtegidos > 0 ? ` 🛡️(${dados[id].turnosProtegidos}T)` : "";
+                
+                // Painel visual com os novos estágios de tempo
+                let statusPlantaVisual = "❌ Sem plantio";
+                if (dados[id].estagio === "semeado") statusPlantaVisual = "🟤 Semente Germinando (1/2)";
+                if (dados[id].estagio === "crescendo") statusPlantaVisual = "🌱 Em Crescimento (2/2)";
+                if (dados[id].estagio === "pronto") statusPlantaVisual = "✨ Pronto para Colher! 🚜";
+
                 listaJogadores.innerHTML += `
                     <p>🚜 <b>${dados[id].nome}</b> ${pShield}<br>
-                    🏅 Pontos: ${dados[id].pontuacao} | 🌱 Solo: ${dados[id].solo}% | 📦 Sementes: ${dados[id].sementes} | 🧪 Fertilizantes: ${dados[id].fertilizantes ?? 4}</p>
+                    🏅 Pontos: ${dados[id].pontuacao} | 🌱 Solo: ${dados[id].solo}% | 📦 Sementes: ${dados[id].sementes} | 🧪 Fertilizantes: ${dados[id].fertilizantes ?? 4}<br>
+                    🌾 Lavoura: <b>${statusPlantaVisual}</b></p>
                     <hr style="border: 0.5px dashed #ccc;">
                 `;
             });
@@ -198,7 +208,14 @@ function iniciarEscutasDoJogo() {
         if (jogadorDoTurno === playerId) {
             minhaVez = true;
             const shieldStatus = turnosProtegidosPraga > 0 ? ` [🛡️ Escudo ativo: ${turnosProtegidosPraga}T]` : "";
-            statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez!${shieldStatus}`;
+            
+            // Textos informativos de ajuda baseados nos 3 turnos de evolução
+            let lembreteAcao = "";
+            if (estagioLavoura === "semeado") lembreteAcao = " (Sua semente está brotando subterraneamente...)";
+            if (estagioLavoura === "crescendo") lembreteAcao = " (A planta está crescendo! Quase pronta.)";
+            if (estagioLavoura === "pronto") lembreteAcao = " (Safra madura! Hora de colher! 🚜)";
+
+            statusTexto.innerText = `🟢 Turno ${turnoAtualPartida} - É a sua vez!${shieldStatus}${lembreteAcao}`;
             botoes.forEach(b => { b.disabled = false; });
         } else {
             minhaVez = false;
@@ -269,8 +286,8 @@ function iniciarEscutasDoJogo() {
                     mostrarAlerta(`Ataque de Pragas repelido pelo efeito do Defensivo Químico. (${turnosProtegidosPraga}T restantes)`, "🛡️");
                 } else if (meuSolo < 55) {
                     meuSolo = Math.max(0, meuSolo - 20);
-                    jaPlantou = false; 
-                    mostrarAlerta("Infestação de Pragas! Como seu solo estava crítico (< 55%), a lavoura foi destruída.", "🐛");
+                    estagioLavoura = "vazio"; 
+                    mostrarAlerta("Infestação de Pragas! Como seu solo estava crítico (< 55%), sua lavoura ativa foi devastada.", "🐛");
                 } else {
                     mostrarAlerta("Infestação de Pragas! Seu solo resistiu por estar acima de 55%.", "🛡️");
                 }
@@ -287,13 +304,13 @@ function iniciarEscutasDoJogo() {
 }
 
 function checarDerrotaPorSementes() {
-    if (minhasSementes < 20 && !faliu) {
+    if (minhasSementes < 20 && estagioLavoura === "vazio" && !faliu) {
         faliu = true;
         minhaVez = false;
         const botoes = document.querySelectorAll('.btn-acao');
         botoes.forEach(b => { b.disabled = true; });
         document.getElementById('status').innerText = "❌ Você Faliu!";
-        mostrarAlerta("Game Over! Seus recursos caíram para menos de 20 sementes. Você foi eliminado da fazenda.", "📉");
+        mostrarAlerta("Game Over! Sem sementes para trabalhar e sem cultivos ativos. Você faliu.", "📉");
     }
 }
 
@@ -328,15 +345,16 @@ async function forcarPassagemTurnoPorFalecimento(idFalecido) {
     } catch(e) { console.error(e); }
 }
 
-// --- BOTÕES DE AÇÕES ---
+// --- BOTÕES DE AÇÕES (SISTEMA DE 3 TURNOS DE CRESCIMENTO) ---
 document.getElementById('btn-plantar').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
+    if (estagioLavoura !== "vazio") return mostrarAlerta("O solo já possui um cultivo ativo!", "⚠️");
     if (minhasSementes < 20) return mostrarAlerta("Sementes insuficientes!", "⚠️");
     
     minhasSementes -= 20;
-    jaPlantou = true;
+    estagioLavoura = "semeado"; // ESTÁGIO 1: Semeado
     txtSementes.innerText = minhasSementes + " sementes";
-    mostrarAlerta("Você usou o Plantio Direto! O solo continua protegido pela palhada.", "🌱");
+    mostrarAlerta("Plantio Direto realizado! A semente foi enterrada. Ela precisa de 2 turnos para ficar pronta.", "🌱");
     
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
@@ -345,16 +363,17 @@ document.getElementById('btn-plantar').addEventListener('click', () => {
 
 document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
+    if (estagioLavoura !== "vazio") return mostrarAlerta("O solo já possui um cultivo ativo!", "⚠️");
     if (minhasSementes < 10) return mostrarAlerta("Sementes insuficientes!", "⚠️");
 
     minhasSementes -= 10;
     meuSolo = Math.max(0, meuSolo - 12); 
-    jaPlantou = true; 
+    estagioLavoura = "semeado"; // ESTÁGIO 1: Semeado
     turnosProtegidosPraga = 4; 
 
     txtSementes.innerText = minhasSementes + " sementes";
     txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Defensivo aplicado. Solo perdeu umidade (-12%), mas protegido contra insetos por 4 turnos!`, "⚠️");
+    mostrarAlerta(`Defensivo e sementes aplicados! O solo perdeu umidade (-12%), mas a germinação está segura por 4 turnos.`, "⚠️");
     
     checarDerrotaPorSementes();
     checarDegradacaoSolo();
@@ -364,14 +383,14 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
 
 document.getElementById('btn-fertilizar').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
-    if (meusFertilizantes <= 0) return mostrarAlerta("Você não tem mais estoque de biofertilizantes!", "🧪");
+    if (meusFertilizantes <= 0) return mostrarAlerta("Estoque de biofertilizantes zerado!", "🧪");
 
     meusFertilizantes -= 1;
     meuSolo = Math.min(100, meuSolo + 25); 
 
     txtFertilizantes.innerText = meusFertilizantes;
     txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Biofertilizante aplicado! Nutrição do solo aumentada em +25%.`, "🧪");
+    mostrarAlerta(`Biofertilizante aplicado! Nutrição do solo restaurada em +25%.`, "🧪");
 
     salvarDadosNoFirebase();
     passarTurnoRapido();
@@ -379,38 +398,44 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
 
 document.getElementById('btn-comprar-fertilizante').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
-    if (minhasSementes < 12) return mostrarAlerta("Sementes insuficientes para comprar suprimentos!", "⚠️");
+    if (minhasSementes < 12) return mostrarAlerta("Sementes insuficientes para essa transação!", "⚠️");
 
     minhasSementes -= 12; 
     meusFertilizantes += 2;
 
     txtSementes.innerText = minhasSementes + " sementes";
     txtFertilizantes.innerText = meusFertilizantes;
-    mostrarAlerta("Compra realizada! +2 cargas de Biofertilizante adicionadas ao estoque.", "🛒");
+    mostrarAlerta("Mercadorias entregues! +2 Biofertilizantes no depósito.", "🛒");
 
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    // Compra não passa o turno para permitir que o jogador jogue logo em seguida.
 });
 
 document.getElementById('btn-colher').addEventListener('click', () => {
     if (!minhaVez || faliu) return;
 
-    if (jaPlantou) {
+    if (estagioLavoura === "pronto") {
         meusPontos += 50;
         minhasSementes += 40; 
-        jaPlantou = false;
+        estagioLavoura = "vazio"; // Esvazia o solo para o próximo ciclo
         meuSolo = Math.max(0, meuSolo - 1); 
 
-        mostrarAlerta("Colheita de sucesso! Você ganhou 50 pontos e +40 sementes.", "🚜");
+        mostrarAlerta("Excelente! Colheita realizada com sucesso: +50 pontos e +40 sementes guardadas.", "🚜");
         txtSementes.innerText = minhasSementes + " sementes";
         txtSolo.innerText = meuSolo + "%";
 
         if (meusPontos >= 250) {
             set(ref(db, 'partida/vencedor'), inputNome.value.trim());
         }
+    } else if (estagioLavoura === "semeado") {
+        mostrarAlerta("Impossível colher! A semente ainda está germinando debaixo da terra.", "⏳");
+        return;
+    } else if (estagioLavoura === "crescendo") {
+        mostrarAlerta("Quase lá! A planta está em estágio de crescimento. Espere mais um turno.", "🌱");
+        return;
     } else {
-        mostrarAlerta("Você não tem nenhuma plantação pronta para colher!", "❌");
+        mostrarAlerta("Não há nada plantado na sua fazenda para colher!", "❌");
+        return;
     }
 
     checarDerrotaPorSementes();
@@ -439,7 +464,6 @@ async function acionarResetGlobalSincronizado() {
     }
 }
 
-// Vinculação direta dos botões de Reset (sem travas assíncronas do DOMContentLoaded)
 const btnReiniciar = document.getElementById('btn-reiniciar');
 const btnResetGlobal = document.getElementById('btn-reset-global');
 if (btnReiniciar) btnReiniciar.addEventListener('click', acionarResetGlobalSincronizado);
@@ -454,9 +478,9 @@ function checarDegradacaoSolo() {
 }
 
 function checarInfeccaoSoloPorTempo() {
-    if (meuSolo < 55 && jaPlantou && turnosProtegidosPraga <= 0) {
-        jaPlantou = false; 
-        mostrarAlerta("Infestação! Como o seu solo estava fraco (< 55%), pragas destruíram a colheita!", "🐛");
+    if (meuSolo < 55 && estagioLavoura !== "vazio" && turnosProtegidosPraga <= 0) {
+        estagioLavoura = "vazio"; 
+        mostrarAlerta("Infestação! Como o seu solo estava fraco (< 55%), pragas destruíram a sua produção!", "🐛");
     }
 }
 
@@ -467,7 +491,7 @@ function salvarDadosNoFirebase() {
         solo: meuSolo,
         sementes: minhasSementes,
         fertilizantes: meusFertilizantes,
-        plantou: jaPlantou,
+        estagio: estagioLavoura, 
         turnosProtegidos: turnosProtegidosPraga 
     });
 }
@@ -482,6 +506,13 @@ async function passarTurnoRapido() {
     meuSolo = Math.max(0, meuSolo - 5); 
     txtSolo.innerText = meuSolo + "%";
     
+    // LINHA DO TEMPO AUTOMÁTICA DE EVOLUÇÃO (SISTEMA DE ESCADA DE TURNOS)
+    if (estagioLavoura === "crescendo") {
+        estagioLavoura = "pronto";     // Turno 3: Fica pronto para colher
+    } else if (estagioLavoura === "semeado") {
+        estagioLavoura = "crescendo";  // Turno 2: Vira planta em crescimento
+    }
+
     checarInfeccaoSoloPorTempo();
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
@@ -495,7 +526,6 @@ async function passarTurnoRapido() {
             let proximoIndex = ids.indexOf(playerId) + 1;
             let novaRodadaCompleta = false;
 
-            // Se for o último jogador do array, volta para o primeiro e marca o início de um novo turno global
             if (proximoIndex >= ids.length) {
                 proximoIndex = 0;
                 novaRodadaCompleta = true;
@@ -503,7 +533,6 @@ async function passarTurnoRapido() {
 
             const proximoJogadorId = ids[proximoIndex];
 
-            // CORREÇÃO: O clima e o número do Turno SÓ mudam se a rodada inteira reiniciar
             if (novaRodadaCompleta) {
                 const proximoTurnoGlobal = turnoAtualPartida + 1;
                 await set(ref(db, 'partida/numeroTurno'), proximoTurnoGlobal);
@@ -540,7 +569,6 @@ async function passarTurnoRapido() {
                 await set(ref(db, 'partida/eventoAtual'), eventoSorteado);
             }
 
-            // Passa a vez para o próximo fazendeiro da fila
             await set(ref(db, 'partida/turnoAtual'), proximoJogadorId);
         }
     } catch (error) {
