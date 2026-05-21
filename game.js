@@ -66,12 +66,10 @@ btnEntrar.addEventListener('click', async () => {
     const playerRef = ref(db, 'jogadores/' + playerId);
     
     try {
-        // Verifica se a lista de jogadores está vazia antes de entrar.
         const jogadoresSnapshot = await get(ref(db, 'jogadores/'));
         const existemJogadores = jogadoresSnapshot.exists();
 
         if (!existemJogadores) {
-            // Força o reset total da partida antiga para evitar lixo eletrônico no banco
             await set(ref(db, 'partida'), {
                 numeroTurno: 1,
                 turnoAtual: playerId, 
@@ -87,7 +85,6 @@ btnEntrar.addEventListener('click', async () => {
             window.ultimaRodadaEfeito = null;
         }
 
-        // Registra o novo jogador no banco
         await set(playerRef, {
             nome: nome,
             pontuacao: meusPontos,
@@ -98,10 +95,8 @@ btnEntrar.addEventListener('click', async () => {
             online: true
         });
 
-        // Configura o disconnect para limpar o jogador caso feche a aba
         onDisconnect(playerRef).remove();
 
-        // Altera a interface visual
         lobby.classList.add('hidden');
         gameBoard.classList.remove('hidden');
 
@@ -109,7 +104,6 @@ btnEntrar.addEventListener('click', async () => {
         txtSementes.innerText = minhasSementes + " sementes";
         txtFertilizantes.innerText = meusFertilizantes;
 
-        // Inicia as escutas do jogo de forma segura
         iniciarEscutasDoJogo();
 
     } catch (error) {
@@ -118,10 +112,7 @@ btnEntrar.addEventListener('click', async () => {
     }
 });
 
-// Centraliza todas as escutas em tempo real do Firebase de forma limpa
 function iniciarEscutasDoJogo() {
-
-    // 1. Escuta a lista de jogadores cadastrados e exibe na tela
     onValue(ref(db, 'jogadores/'), (snapshot) => {
         const dados = snapshot.val();
         listaJogadores.innerHTML = "<h3>Produtores na Partida:</h3>";
@@ -137,7 +128,6 @@ function iniciarEscutasDoJogo() {
         }
     });
 
-    // 2. Escuta o número do Turno global da partida
     onValue(ref(db, 'partida/numeroTurno'), (turnoSnapshot) => {
         turnoAtualPartida = turnoSnapshot.val() || 1;
         if (txtTurno) {
@@ -145,7 +135,6 @@ function iniciarEscutasDoJogo() {
         }
     });
 
-    // 3. Escuta de quem é a vez atual de jogar (Gerenciador de Turnos)
     onValue(ref(db, 'partida/turnoAtual'), (snapshot) => {
         const jogadorDoTurno = snapshot.val();
         const statusTexto = document.getElementById('status');
@@ -174,10 +163,9 @@ function iniciarEscutasDoJogo() {
         }
     });
 
-    // 4. Escuta o Vencedor da Partida
     onValue(ref(db, 'partida/vencedor'), (snapshot) => {
         const vencedor = snapshot.val();
-        const painelAcoes = document.getElementById('Painel-Acoes');
+        const painelAcoes = document.getElementById('painel-acoes');
         const telaFimJogo = document.getElementById('tela-fim-jogo');
         const textoVencedor = document.getElementById('texto-vencedor');
         const statusTexto = document.getElementById('status');
@@ -185,16 +173,15 @@ function iniciarEscutasDoJogo() {
         if (vencedor) {
             minhaVez = false;
             statusTexto.innerText = "🏁 Partida Encerrada!";
-            painelAcoes.classList.add('hidden');
+            if (painelAcoes) painelAcoes.classList.add('hidden');
             telaFimJogo.classList.remove('hidden');
             textoVencedor.innerText = `O Produtor ${vencedor} alcançou a meta de sustentabilidade e venceu a partida! 🌾🚜`;
         } else {
-            painelAcoes.classList.remove('hidden');
+            if (painelAcoes) painelAcoes.classList.remove('hidden');
             telaFimJogo.classList.add('hidden');
         }
     });
 
-    // 5. Escuta o Clima e aplica as intempéries climáticas
     onValue(ref(db, 'partida/eventoAtual'), (snapshot) => {
         const evento = snapshot.val();
         const txtClima = document.getElementById('clima-atual');
@@ -245,7 +232,7 @@ function iniciarEscutasDoJogo() {
     });
 }
 
-// --- BOTÕES DE AÇÕES DO TABULEIRO ---
+// --- BOTÕES DE AÇÕES ---
 
 document.getElementById('btn-plantar').addEventListener('click', () => {
     if (!minhaVez) return;
@@ -318,7 +305,6 @@ document.getElementById('btn-colher').addEventListener('click', () => {
     passarTurno();
 });
 
-// Botão reiniciar
 document.getElementById('btn-reiniciar').addEventListener('click', () => {
     set(ref(db, 'partida/eventoAtual'), {
         nome: "Tempo Limpo",
@@ -347,7 +333,6 @@ document.getElementById('btn-reiniciar').addEventListener('click', () => {
     mostrarAlerta("Nova partida iniciada no Turno 1 com Tempo Limpo!", "🔄");
 });
 
-// Funções Utilitárias de Regras
 function checarDegradacaoSolo() {
     if (meuSolo <= 0) {
         mostrarAlerta("Seu solo está completamente esgotado! Você perdeu 20 pontos por degradação severa.", "🚨");
@@ -374,7 +359,7 @@ function salvarDadosNoFirebase() {
     });
 }
 
-function passarTurno() {
+function pasarTurno() { // Mantida a grafia original do projeto
     meuSolo = Math.max(0, meuSolo - 13);
     txtSolo.innerText = meuSolo + "%";
     
@@ -385,34 +370,36 @@ function passarTurno() {
     let eventoSorteado;
     const chance = Math.random();
 
+    // BALANCEAMENTO APLICADO AQUI:
     if (turnoAtualPartida === 1) {
-        if (chance < 0.60) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
-        else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
+        if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
+        else if (chance < 0.90) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
     }
     else if (turnoAtualPartida > 3) {
-        if (chance < 0.12) eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 30% de solo.", tipo: "chuva_forte" };
-        else if (chance < 0.30) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (< 70%) perdem 20% de saúde.", tipo: "praga" };
-        else if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
+        // Reduzido Chuva Forte de 12% para 5% | Reduzido Pragas de 18% para 7%
+        if (chance < 0.05) eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 30% de solo.", tipo: "chuva_forte" };
+        else if (chance < 0.12) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (< 70%) perdem 20% de saúde.", tipo: "praga" };
+        else if (chance < 0.65) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
         else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15%.", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", descricao: "O calor consome recursos. Todos perdem 10 sementes.", tipo: "seca" };
     } 
     else if (turnoAtualPartida === 3) {
-        if (chance < 0.18) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", tipo: "praga" };
-        else if (chance < 0.60) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
-        else if (chance < 0.80) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
+        // Reduzido Pragas de 18% para 8%
+        if (chance < 0.08) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", tipo: "praga" };
+        else if (chance < 0.65) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
+        else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
     } 
-    else { 
-        if (chance < 0.60) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
-        else if (chance < 0.80) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
+    else { // Turno 2
+        if (chance < 0.65) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
+        else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
     }
 
     eventoSorteado.idRodada = Date.now();
     set(ref(db, 'partida/eventoAtual'), eventoSorteado);
 
-    // Avança o turno para o próximo jogador da lista
     onValue(ref(db, 'jogadores/'), (snapshot) => {
         const lista = snapshot.val();
         if (!lista) return;
