@@ -48,8 +48,7 @@ let turnoAtualPartida = 1;
 // Função para disparar o Alerta customizado
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = message; // Proteção simples de escopo
-    popupMensagem.innerText = mensagem;
+    popupMensagem.innerText = mensagem; // Certifique-se de remover a linha duplicada com a palavra 'message'
     popupContainer.classList.remove('hidden');
 }
 
