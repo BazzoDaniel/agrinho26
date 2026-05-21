@@ -130,6 +130,14 @@ function iniciarEscutasDoJogo() {
         if (!jogadorDoTurno) {
             set(ref(db, 'partida/turnoAtual'), playerId);
             set(ref(db, 'partida/numeroTurno'), 1);
+            // AJUSTE: Força o primeiro turno a sempre começar limpo no banco
+            set(ref(db, 'partida/eventoAtual'), {
+                nome: "Tempo Limpo",
+                icone: "🌤️",
+                descricao: "Condições ideais para o manejo.",
+                tipo: "normal",
+                idRodada: Date.now()
+            });
             return;
         }
 
@@ -292,7 +300,14 @@ document.getElementById('btn-colher').addEventListener('click', () => {
 
 // Botão reiniciar
 document.getElementById('btn-reiniciar').addEventListener('click', () => {
-    set(ref(db, 'partida/eventoAtual'), null);
+    // AJUSTE: Reinicia sempre forçando Tempo Limpo no Turno 1
+    set(ref(db, 'partida/eventoAtual'), {
+        nome: "Tempo Limpo",
+        icone: "🌤️",
+        descricao: "Condições ideais para o manejo.",
+        tipo: "normal",
+        idRodada: Date.now()
+    });
     window.ultimaRodadaEfeito = null;
     set(ref(db, 'partida/vencedor'), null);
     set(ref(db, 'partida/turnoAtual'), playerId);
@@ -310,7 +325,7 @@ document.getElementById('btn-reiniciar').addEventListener('click', () => {
     txtFertilizantes.innerText = meusFertilizantes;
 
     salvarDadosNoFirebase();
-    mostrarAlerta("Nova partida iniciada no Turno 1!", "🔄");
+    mostrarAlerta("Nova partida iniciada no Turno 1 com Tempo Limpo!", "🔄");
 });
 
 // Funções Utilitárias de Regras
@@ -348,11 +363,18 @@ function passarTurno() {
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
 
-    // Sorteio de Clima
+    // AJUSTE NO SORTEIO: Se o turno que ACABOU de ser jogado for o Turno 1, 
+    // o próximo clima (do Turno 2) será obrigatoriamente Tempo Limpo, Seca ou Chuva normal.
     let eventoSorteado;
     const chance = Math.random();
 
-    if (turnoAtualPartida > 3) {
+    if (turnoAtualPartida === 1) {
+        // Regra exclusiva pós-turno 1: Garante uma transição amigável para o Turno 2
+        if (chance < 0.60) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
+        else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
+        else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
+    }
+    else if (turnoAtualPartida > 3) {
         if (chance < 0.12) eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 30% de solo.", tipo: "chuva_forte" };
         else if (chance < 0.30) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (< 70%) perdem 20% de saúde.", tipo: "praga" };
         else if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
@@ -365,7 +387,7 @@ function passarTurno() {
         else if (chance < 0.80) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
     } 
-    else {
+    else { // Turno 2
         if (chance < 0.60) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
         else if (chance < 0.80) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
