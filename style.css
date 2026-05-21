@@ -73,7 +73,7 @@ h3 {
 hr {
     border: 0;
     height: 1px;
-    background: #e0e0e0;
+    background: #b46565;
     margin: 20px 0;
 }
 
@@ -90,7 +90,7 @@ hr {
     width: 100%;
     max-width: 350px;
     padding: 12px 16px;
-    border: 2px solid #cc9393;
+    border: 2px solid #cacaca;
     border-radius: 8px;
     font-size: 16px;
     transition: all 0.3s ease;
