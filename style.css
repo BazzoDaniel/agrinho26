@@ -99,7 +99,7 @@ hr {
 #player-name:focus {
     border-color: var(--verde-claro);
     outline: none;
-    box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+    box-shadow: 0 0 8px rgba(175, 135, 76, 0.2);
 }
 
 #btn-entrar {
