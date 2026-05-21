@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set, onValue, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, set, onValue, onDisconnect, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDtc5jCTDrcweaPUfTS_OoZQcGJsNhQV0k",
@@ -48,7 +48,7 @@ let turnoAtualPartida = 1;
 // Função para disparar o Alerta customizado
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = mensagem;
+    popupMensagem.innerText = message = mensagem;
     popupContainer.classList.remove('hidden');
 }
 
@@ -58,24 +58,51 @@ btnPopupOk.addEventListener('click', () => {
 });
 
 // Ação de Entrar no Jogo
-btnEntrar.addEventListener('click', () => {
+btnEntrar.addEventListener('click', async () => {
     const nome = inputNome.value.trim();
     if (!nome) return mostrarAlerta("Digite um nome válido!", "⚠️");
 
     playerId = "player_" + Date.now();
     const playerRef = ref(db, 'jogadores/' + playerId);
     
-    // Define os dados iniciais do jogador
-    set(playerRef, {
-        nome: nome,
-        pontuacao: meusPontos,
-        solo: meuSolo,
-        sementes: minhasSementes,
-        fertilizantes: meusFertilizantes,
-        plantou: jaPlantou,
-        online: true
-    }).then(() => {
-        // Altera a interface visual após registrar no banco
+    try {
+        // CORREÇÃO: Verifica se a lista de jogadores está vazia antes de entrar.
+        // Se estiver vazia, significa que você é o primeiro jogador, então resetamos a partida global.
+        const jogadoresSnapshot = await get(ref(db, 'jogadores/'));
+        const existemJogadores = jogadoresSnapshot.exists();
+
+        if (!existemJogadores) {
+            // Força o reset total da partida antiga para evitar lixo eletrônico no banco
+            await set(ref(db, 'partida'), {
+                numeroTurno: 1,
+                turnoAtual: playerId, // O primeiro a entrar assume o turno inicial
+                vencedor: null,
+                eventoAtual: {
+                    nome: "Tempo Limpo",
+                    icone: "🌤️",
+                    descricao: "Condições ideais para o manejo.",
+                    tipo: "normal",
+                    idRodada: Date.now()
+                }
+            });
+            window.ultimaRodadaEfeito = null;
+        }
+
+        // Registra o novo jogador no banco
+        await set(playerRef, {
+            nome: nome,
+            pontuacao: meusPontos,
+            solo: meuSolo,
+            sementes: minhasSementes,
+            fertilizantes: meusFertilizantes,
+            plantou: jaPlantou,
+            online: true
+        });
+
+        // Configura o disconnect para limpar o jogador caso feche a aba
+        onDisconnect(playerRef).remove();
+
+        // Altera a interface visual
         lobby.classList.add('hidden');
         gameBoard.classList.remove('hidden');
 
@@ -83,14 +110,13 @@ btnEntrar.addEventListener('click', () => {
         txtSementes.innerText = minhasSementes + " sementes";
         txtFertilizantes.innerText = meusFertilizantes;
 
-        // Ativa as escutas do jogo
+        // Inicia as escutas do jogo de forma segura
         iniciarEscutasDoJogo();
-    }).catch((error) => {
-        console.error("Erro ao entrar:", error);
-        mostrarAlerta("Erro ao conectar com o servidor. Verifique as regras do Firebase.", "❌");
-    });
 
-    onDisconnect(playerRef).remove();
+    } catch (error) {
+        console.error("Erro ao entrar na partida:", error);
+        mostrarAlerta("Erro ao conectar com o servidor. Verifique o Firebase.", "❌");
+    }
 });
 
 // Centraliza todas as escutas em tempo real do Firebase de forma limpa
@@ -126,22 +152,9 @@ function iniciarEscutasDoJogo() {
         const statusTexto = document.getElementById('status');
         const botoes = document.querySelectorAll('.btn-acao');
 
-        // Se a partida não tiver um turno definido, o primeiro jogador assume a liderança
-        if (!jogadorDoTurno) {
-            set(ref(db, 'partida/turnoAtual'), playerId);
-            set(ref(db, 'partida/numeroTurno'), 1);
-            // AJUSTE: Força o primeiro turno a sempre começar limpo no banco
-            set(ref(db, 'partida/eventoAtual'), {
-                nome: "Tempo Limpo",
-                icone: "🌤️",
-                descricao: "Condições ideais para o manejo.",
-                tipo: "normal",
-                idRodada: Date.now()
-            });
-            return;
-        }
+        if (!jogadorDoTurno) return;
 
-        // Verifica os jogadores atuais para saber o nome do oponente da vez
+        // Verifica os jogadores atuais de forma assíncrona pontual para não criar loops de escuta
         onValue(ref(db, 'jogadores/'), (jogadoresSnapshot) => {
             const jogadoresOnline = jogadoresSnapshot.val() || {};
             
@@ -189,6 +202,11 @@ function iniciarEscutasDoJogo() {
         }
 
         txtClima.innerText = `${evento.icone} Clima: ${evento.nome} (${evento.descricao ?? ''})`;
+
+        // CORREÇÃO: Se for turno 1, impede que o efeito negativo da rodada anterior aplique dano
+        if (turnoAtualPartida === 1 && evento.tipo !== 'normal') {
+            return;
+        }
 
         if (evento.idRodada !== window.ultimaRodadaEfeito) {
             window.ultimaRodadaEfeito = evento.idRodada;
@@ -300,7 +318,6 @@ document.getElementById('btn-colher').addEventListener('click', () => {
 
 // Botão reiniciar
 document.getElementById('btn-reiniciar').addEventListener('click', () => {
-    // AJUSTE: Reinicia sempre forçando Tempo Limpo no Turno 1
     set(ref(db, 'partida/eventoAtual'), {
         nome: "Tempo Limpo",
         icone: "🌤️",
@@ -363,13 +380,10 @@ function passarTurno() {
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
 
-    // AJUSTE NO SORTEIO: Se o turno que ACABOU de ser jogado for o Turno 1, 
-    // o próximo clima (do Turno 2) será obrigatoriamente Tempo Limpo, Seca ou Chuva normal.
     let eventoSorteado;
     const chance = Math.random();
 
     if (turnoAtualPartida === 1) {
-        // Regra exclusiva pós-turno 1: Garante uma transição amigável para o Turno 2
         if (chance < 0.60) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
         else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
@@ -387,7 +401,7 @@ function passarTurno() {
         else if (chance < 0.80) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
     } 
-    else { // Turno 2
+    else { 
         if (chance < 0.60) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
         else if (chance < 0.80) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
         else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
