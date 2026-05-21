@@ -24,6 +24,9 @@ const txtSolo = document.getElementById('status-solo');
 const txtSementes = document.getElementById('recursos-moedas');
 const txtFertilizantes = document.getElementById('recursos-fertilizantes');
 
+// Elemento do Áudio
+const musicaFazenda = document.getElementById('musica-fazenda');
+
 // Elementos do Pop-up Customizado
 const popupContainer = document.getElementById('popup-container');
 const popupMensagem = document.getElementById('popup-mensagem');
@@ -57,7 +60,7 @@ mudarFundo('1.png');
 
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = mensagem; // Corrigido aqui para evitar quebra de código
+    popupMensagem.innerText = mensagem; 
     popupContainer.classList.remove('hidden');
 }
 
@@ -123,6 +126,14 @@ btnEntrar.addEventListener('click', async () => {
         txtSolo.innerText = meuSolo + "%";
         txtSementes.innerText = minhasSementes + " sementes";
         txtFertilizantes.innerText = meusFertilizantes;
+
+        // TOCA A TRILHA SONORA AO ENTRAR NA FAZENDA
+        if (musicaFazenda) {
+            musicaFazenda.volume = 0.35; // Mantém o som ambiente sem estourar o áudio externa
+            musicaFazenda.play().catch(erro => {
+                console.log("Interação prévia bloqueada pelo navegador, tentando novamente.", erro);
+            });
+        }
 
         iniciarEscutasDoJogo();
 
@@ -214,7 +225,6 @@ function iniciarEscutasDoJogo() {
         }
     });
 
-    // MUDANÇA DINÂMICA DAS IMAGENS DE ACORDO COM O CLIMA ATUAL
     onValue(ref(db, 'partida/eventoAtual'), (snapshot) => {
         const evento = snapshot.val();
         const txtClima = document.getElementById('clima-atual');
@@ -223,17 +233,16 @@ function iniciarEscutasDoJogo() {
 
         txtClima.innerHTML = `Clima atual: ${evento.icone} ${evento.nome} (${evento.descricao ?? ''}) | 📅 Turno: <span id="turno-display">${turnoAtualPartida}</span>`;
 
-        // TROCA O FUNDO DE ACORDO COM O TIPO DE EVENTO DO SERVIDOR
         if (evento.tipo === 'normal') {
-            mudarFundo('2.png'); // Tempo Limpo
+            mudarFundo('2.png');
         } else if (evento.tipo === 'chuva') {
-            mudarFundo('3.png'); // Chuva Leve
+            mudarFundo('3.png');
         } else if (evento.tipo === 'praga') {
-            mudarFundo('4.png'); // Invasão de Pragas
+            mudarFundo('4.png');
         } else if (evento.tipo === 'chuva_forte') {
-            mudarFundo('5.png'); // Tempestade
+            mudarFundo('5.png');
         } else if (evento.tipo === 'seca') {
-            mudarFundo('2.png'); // Seca usa o cenário limpo/aberto por padrão
+            mudarFundo('2.png');
         }
 
         if (turnoAtualPartida === 1 && evento.tipo !== 'normal') return;
@@ -304,7 +313,12 @@ async function executarSaidaEGameOver() {
     lobby.classList.remove('hidden');
     inputNome.value = "";
     
-    // VOLTA PARA O FUNDO DO MENU CASO O JOGADOR MORRA OU SAIA
+    // DESLIGA A MÚSICA SE O JOGADOR PERDER E VOLTAR AO MENU
+    if (musicaFazenda) {
+        musicaFazenda.pause();
+        musicaFazenda.currentTime = 0;
+    }
+    
     mudarFundo('1.png');
 }
 
@@ -433,7 +447,6 @@ async function acionarResetGlobalSincronizado() {
     }
 }
 
-// Vinculação segura após o carregamento da DOM
 document.addEventListener("DOMContentLoaded", () => {
     const btnReiniciar = document.getElementById('btn-reiniciar');
     const btnResetGlobal = document.getElementById('btn-reset-global');
