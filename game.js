@@ -60,7 +60,7 @@ mudarFundo('1.png');
 
 function mostrarAlerta(mensagem, icone = "📢") {
     popupIcone.innerText = icone;
-    popupMensagem.innerText = mensagem; 
+    popupMensagem.innerText = message; 
     popupContainer.classList.remove('hidden');
 }
 
@@ -127,9 +127,8 @@ btnEntrar.addEventListener('click', async () => {
         txtSementes.innerText = minhasSementes + " sementes";
         txtFertilizantes.innerText = meusFertilizantes;
 
-        // TOCA A TRILHA SONORA AO ENTRAR NA FAZENDA
         if (musicaFazenda) {
-            musicaFazenda.volume = 0.35; // Mantém o som ambiente sem estourar o áudio externa
+            musicaFazenda.volume = 0.35;
             musicaFazenda.play().catch(erro => {
                 console.log("Interação prévia bloqueada pelo navegador, tentando novamente.", erro);
             });
@@ -225,6 +224,7 @@ function iniciarEscutasDoJogo() {
         }
     });
 
+    // LISTENER DO CLIMA CENTRALIZADO (RESOLVE O ERRO DA IMAGEM 3.PNG)
     onValue(ref(db, 'partida/eventoAtual'), (snapshot) => {
         const evento = snapshot.val();
         const txtClima = document.getElementById('clima-atual');
@@ -233,16 +233,25 @@ function iniciarEscutasDoJogo() {
 
         txtClima.innerHTML = `Clima atual: ${evento.icone} ${evento.nome} (${evento.descricao ?? ''}) | 📅 Turno: <span id="turno-display">${turnoAtualPartida}</span>`;
 
-        if (evento.tipo === 'normal') {
-            mudarFundo('2.png');
-        } else if (evento.tipo === 'chuva') {
-            mudarFundo('3.png');
-        } else if (evento.tipo === 'praga') {
-            mudarFundo('4.png');
-        } else if (evento.tipo === 'chuva_forte') {
-            mudarFundo('5.png');
-        } else if (evento.tipo === 'seca') {
-            mudarFundo('2.png');
+        // Atribuição estrita do background dependendo única e exclusivamente do evento ativo
+        switch (evento.tipo) {
+            case 'normal':
+                mudarFundo('2.png');
+                break;
+            case 'chuva':
+                mudarFundo('3.png'); // Imagem da Chuva Leve fixa sem ser atropelada
+                break;
+            case 'praga':
+                mudarFundo('4.png');
+                break;
+            case 'chuva_forte':
+                mudarFundo('5.png');
+                break;
+            case 'seca':
+                mudarFundo('2.png');
+                break;
+            default:
+                mudarFundo('2.png');
         }
 
         if (turnoAtualPartida === 1 && evento.tipo !== 'normal') return;
@@ -313,7 +322,6 @@ async function executarSaidaEGameOver() {
     lobby.classList.remove('hidden');
     inputNome.value = "";
     
-    // DESLIGA A MÚSICA SE O JOGADOR PERDER E VOLTAR AO MENU
     if (musicaFazenda) {
         musicaFazenda.pause();
         musicaFazenda.currentTime = 0;
@@ -349,7 +357,7 @@ document.getElementById('btn-plantar').addEventListener('click', () => {
     
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    if (!faliu) pasarTurnoRapido();
+    if (!faliu) passarTurnoRapido();
 });
 
 document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
@@ -368,7 +376,7 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
     checarDerrotaPorSementes();
     checarDegradacaoSolo();
     salvarDadosNoFirebase();
-    if (!faliu) pasarTurnoRapido();
+    if (!faliu) passarTurnoRapido();
 });
 
 document.getElementById('btn-fertilizar').addEventListener('click', () => {
@@ -383,7 +391,7 @@ document.getElementById('btn-fertilizar').addEventListener('click', () => {
     mostrarAlerta(`Biofertilizante aplicado! Nutrição do solo aumentada em +25%.`, "🧪");
 
     salvarDadosNoFirebase();
-    pasarTurnoRapido();
+    passarTurnoRapido();
 });
 
 document.getElementById('btn-comprar-fertilizante').addEventListener('click', () => {
@@ -423,7 +431,7 @@ document.getElementById('btn-colher').addEventListener('click', () => {
 
     checarDerrotaPorSementes();
     salvarDadosNoFirebase();
-    if (!faliu) pasarTurnoRapido();
+    if (!faliu) passarTurnoRapido();
 });
 
 async function acionarResetGlobalSincronizado() {
@@ -481,7 +489,7 @@ function salvarDadosNoFirebase() {
     });
 }
 
-async function pasarTurnoRapido() {
+async function passarTurnoRapido() {
     if (faliu) return;
 
     if (turnosProtegidosPraga > 0) {
@@ -546,4 +554,4 @@ async function pasarTurnoRapido() {
     }
 }
 
-window.passarTurno = pasarTurnoRapido;
+window.passarTurno = passarTurnoRapido;
