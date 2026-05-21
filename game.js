@@ -130,7 +130,6 @@ function iniciarEscutasDoJogo() {
     onValue(ref(db, 'partida/controleReset'), (snapshot) => {
         const valorReset = snapshot.val();
         if (valorReset && valorReset > 0) {
-            // Pequeno delay para garantir que o Firebase limpou os dados antes do reload
             setTimeout(() => {
                 window.location.reload();
             }, 300);
@@ -232,19 +231,20 @@ function iniciarEscutasDoJogo() {
                 mostrarAlerta("Chuva na hora certa! Seu solo recuperou 15% de umidade.", "🌧️");
             }
             else if (evento.tipo === 'chuva_forte') {
-                meuSolo = Math.max(0, meuSolo - 30);
-                mostrarAlerta("Tempestade de Chuva Forte! O excesso de água causou erosão (-30% solo)!", "⛈️");
+                // ALTERADO: Reduzido o dano de -30% para -20% de impacto no solo
+                meuSolo = Math.max(0, meuSolo - 20);
+                mostrarAlerta("Tempestade de Chuva Forte! O excesso de água causou erosão (-20% solo)!", "⛈️");
                 checarInfeccaoSoloPorTempo();
             }
             else if (evento.tipo === 'praga') {
                 if (turnosProtegidosPraga > 0) {
                     mostrarAlerta(`Ataque de Pragas repelido pelo efeito do Defensivo Químico. (${turnosProtegidosPraga}T restantes)`, "🛡️");
-                } else if (meuSolo < 70) {
+                } else if (meuSolo < 55) { // ALTERADO: Limite ajustado de 70% para 55%
                     meuSolo = Math.max(0, meuSolo - 20);
                     jaPlantou = false; 
-                    mostrarAlerta("Infestação de Pragas! Como seu solo estava fraco (< 70%), a lavoura foi destruída.", "🐛");
+                    mostrarAlerta("Infestação de Pragas! Como seu solo estava crítico (< 55%), a lavoura foi destruída.", "🐛");
                 } else {
-                    mostrarAlerta("Infestação de Pragas! Seu solo resistiu por estar forte.", "🛡️");
+                    mostrarAlerta("Infestação de Pragas! Seu solo resistiu por estar acima de 55%.", "🛡️");
                 }
             }
 
@@ -329,7 +329,7 @@ document.getElementById('btn-Agrotoxico').addEventListener('click', () => {
 
     txtSementes.innerText = minhasSementes + " sementes";
     txtSolo.innerText = meuSolo + "%";
-    mostrarAlerta(`Defensivo aplicado. Solo degradado (-12%), mas protegido contra insetos por 4 turnos!`, "⚠️");
+    mostrarAlerta(`Defensivo aplicado. Solo perdeu umidade (-12%), mas protegido contra insetos por 4 turnos!`, "⚠️");
     
     checarDerrotaPorSementes();
     checarDegradacaoSolo();
@@ -395,13 +395,12 @@ document.getElementById('btn-colher').addEventListener('click', () => {
 // FUNÇÃO DE REINÍCIO FORÇADO GLOBAL (Limpa o banco e dá F5 em todos os navegadores conectados)
 async function acionarResetGlobalSincronizado() {
     try {
-        // 1. Limpa a lista de jogadores e redefine as variáveis globais da partida
         await set(ref(db, 'jogadores'), null);
         await set(ref(db, 'partida'), {
             numeroTurno: 1,
             turnoAtual: "",
             vencedor: null,
-            controleReset: Date.now(), // Atualiza o gatilho para forçar o recarregamento (F5) de todos
+            controleReset: Date.now(), // Dispara o F5 automático geral
             eventoAtual: {
                 nome: "Tempo Limpo",
                 icone: "🌤️",
@@ -427,9 +426,10 @@ function checarDegradacaoSolo() {
 }
 
 function checarInfeccaoSoloPorTempo() {
-    if (meuSolo < 70 && jaPlantou && turnosProtegidosPraga <= 0) {
+    // ALTERADO: Antes era < 70%, agora a lavoura só quebra se o solo ficar abaixo de 55%
+    if (meuSolo < 55 && jaPlantou && turnosProtegidosPraga <= 0) {
         jaPlantou = false; 
-        mostrarAlerta("Infestação! Como o seu solo estava fraco, pragas destruíram a colheita!", "🐛");
+        mostrarAlerta("Infestação! Como o seu solo estava fraco (< 55%), pragas destruíram a colheita!", "🐛");
     }
 }
 
@@ -462,17 +462,31 @@ async function passarTurno() {
     let eventoSorteado;
     const chance = Math.random();
 
+    // PROBABILIDADES EVOLUTIVAS DE ACORDO COM O TURNO
     if (turnoAtualPartida === 1) {
-        if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal" };
-        else if (chance < 0.90) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva" };
-        else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca" };
+        if (chance < 0.70) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições ideais para o início do manejo." };
+        else eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva", descricao: "A umidade ajuda o solo. Todos recuperam 15%." };
+    }
+    else if (turnoAtualPartida === 2) {
+        if (chance < 0.10) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", tipo: "praga", descricao: "Insetos buscam lavouras desprotegidas." };
+        else if (chance < 0.25) eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", tipo: "seca", descricao: "O calor consome recursos. Todos perdem 10 sementes." };
+        else if (chance < 0.60) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", tipo: "chuva", descricao: "A umidade ajuda o solo. Todos recuperam 15%." };
+        else eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", tipo: "normal", descricao: "Condições estáveis." };
     }
     else {
-        if (chance < 0.05) eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 30% de solo.", tipo: "chuva_forte" };
-        else if (chance < 0.12) eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos degradados (< 70%) perdem 20% de saúde.", tipo: "praga" };
-        else if (chance < 0.65) eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
-        else if (chance < 0.85) eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15%.", tipo: "chuva" };
-        else eventoSorteado = { nome: "Seca Prolongada", icone: "🔥", descricao: "O calor consome recursos. Todos perdem 10 sementes.", tipo: "seca" };
+        // TURNO 3 OU MAIS: 17% Tempestade | 23% Pragas | 30% Chuva Abençoada | 30% Tempo Limpo
+        if (chance < 0.17) {
+            eventoSorteado = { nome: "Tempestade de Chuva Forte", icone: "⛈️", descricao: "Temporal severo causa erosão. Todos perdem 20% de solo.", tipo: "chuva_forte" };
+        } 
+        else if (chance < 0.40) { // 0.17 + 0.23 = 0.40
+            eventoSorteado = { nome: "Ataque de Pragas", icone: "🐛", descricao: "Solos críticos (< 55%) perdem a lavoura ativa.", tipo: "praga" };
+        } 
+        else if (chance < 0.70) { // 0.40 + 0.30 = 0.70
+            eventoSorteado = { nome: "Chuva Abençoada", icone: "🌧️", descricao: "A umidade ajuda o solo. Todos recuperam 15%.", tipo: "chuva" };
+        } 
+        else {
+            eventoSorteado = { nome: "Tempo Limpo", icone: "🌤️", descricao: "Condições ideais para o manejo.", tipo: "normal" };
+        }
     }
 
     eventoSorteado.idRodada = Date.now();

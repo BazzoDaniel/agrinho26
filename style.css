@@ -7,7 +7,13 @@
 }
 
 body {
-    background-color: #f1f8e9; /* Tom verde bem suave com tema agrícola */
+    /* Imagem de Fundo aplicada com preenchimento inteligente e responsivo */
+    background-image: url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=1400');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
     color: #333;
     display: flex;
     justify-content: center;
@@ -18,11 +24,12 @@ body {
 
 /* Container Principal do Jogo */
 #game-container {
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.96); /* Leve transparência para mesclar sutilmente com o fundo */
+    backdrop-filter: blur(4px); /* Suaviza o fundo atrás do painel */
     width: 100%;
     max-width: 800px; /* Evita que o jogo estique demais em telas gigantes */
     border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -99,11 +106,12 @@ h1 {
     margin-top: 15px;
     max-height: 150px;
     overflow-y: auto; /* Adiciona scroll se houver muitos jogadores */
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.8);
     padding: 10px;
     border-radius: 8px;
     font-size: 0.9rem;
     text-align: left;
+    border: 1px solid #e0e0e0;
 }
 
 /* Estrutura do Tabuleiro (Grid Dinâmico) */
@@ -154,7 +162,7 @@ h1 {
     margin-bottom: 5px;
 }
 
-/* Botões Customizados */
+/* Botões Customizados Base */
 .btn-acao {
     width: 100%;
     padding: 12px 15px;
@@ -189,13 +197,26 @@ h1 {
     border-bottom-color: #bdbdbd;
     cursor: not-allowed;
     opacity: 0.7;
+    transform: none !important;
 }
 
 /* Botões específicos coloridos */
-#btn-plantar { background-color: #c8e6c9; border-bottom-color: #81c784; color: #2e7d32; }
-#btn-Agrotoxico { background-color: #ffccbc; border-bottom-color: #e0f2f1; color: #c62828; }
-#btn-fertilizar { background-color: #e1f5fe; border-bottom-color: #4fc3f7; color: #0277bd; }
-#btn-colher { background-color: #ffe082; border-bottom-color: #ffb74d; color: #ff8f00; }
+#btn-plantar { background-color: #a7dfa9; border-bottom-color: #5ca35f; color: #276e2a; }
+#btn-Agrotoxico { background-color: #f0a38b; border-bottom-color: #b77360; color: #c62828; }
+#btn-fertilizar { background-color: #66bde6; border-bottom-color: #4f96f7; color: #0277bd; }
+#btn-colher { background-color: #ffe082; border-bottom-color: #ffb74d; color: #aa6710; }
+
+/* Botão Comprar Fertilizar - Azul Escuro Customizado */
+#btn-comprar-fertilizante {
+    background-color: #002244; 
+    color: #ffffff;            
+    border-bottom-color: #001122; 
+}
+
+#btn-comprar-fertilizante:not(:disabled):hover {
+    background-color: #003366; 
+    filter: none; /* Mantém a cor sólida sem o filtro cinza nativo */
+}
 
 /* Pop-ups e Telas Sobrepostas */
 #popup-container {
@@ -241,37 +262,6 @@ h1 {
     display: none !important;
 }
 
-/* --- ADAPTAÇÃO PARA CELULARES (MEDIA QUERY) --- */
-@media (max-width: 680px) {
-    body {
-        padding: 8px;
-    }
-
-    #game-container {
-        padding: 16px;
-        gap: 15px;
-    }
-
-    h1 {
-        font-size: 1.5rem;
-    }
-
-    /* Transforma o Grid em coluna única no celular */
-    #tabuleiro-container {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .btn-acao {
-        padding: 14px 12px; /* Aumenta a área de toque no celular */
-        font-size: 0.9rem;
-    }
-}
-
-@keyframes popupEntrada {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
 /* Botão Reset Flutuante Fixo no Canto Inferior Direito */
 #btn-reset-global {
     position: fixed;
@@ -302,7 +292,33 @@ h1 {
     transform: scale(0.95);
 }
 
-/* Ajuste discreto para telas menores (celulares) não cobrir textos importantes */
+/* --- ADAPTAÇÃO PARA CELULARES (MEDIA QUERIES) --- */
+@media (max-width: 680px) {
+    body {
+        padding: 8px;
+    }
+
+    #game-container {
+        padding: 16px;
+        gap: 15px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    /* Transforma o Grid em coluna única no celular */
+    #tabuleiro-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .btn-acao {
+        padding: 14px 12px; /* Aumenta a área de toque no celular */
+        font-size: 0.9rem;
+    }
+}
+
 @media (max-width: 480px) {
     #btn-reset-global {
         bottom: 15px;
@@ -311,4 +327,9 @@ h1 {
         font-size: 0.8rem;
         opacity: 0.9; /* Levemente transparente no celular para não atrapalhar a visão */
     }
+}
+
+@keyframes popupEntrada {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
