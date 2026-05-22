@@ -67,13 +67,23 @@
             <hr style="border: 0.5px solid #e0e0e0; margin: 5px 0;">
 
             <div id="tabuleiro-container">
+    <div id="info-fazenda">...</div>
 
-                <div id="info-fazenda">
-                    <h3>Sua Fazenda 🌾</h3>
-                    <p>Status do Solo: <span id="status-solo">100%</span></p>
-                    <p>Recursos: <span id="recursos-moedas">100 sementes</span></p>
-                    <p>Estoque de Biofertilizante: <span id="recursos-fertilizantes" style="font-weight: bold; color: #2e7d32;">4</span> cargas</p>
-                </div>
+    <div id="painel-acoes">...</div>
+
+    <div class="painel-plantacao">
+        <h3>Plantação Atual 🌾</h3>
+        <label style="font-size: 13px; color: #bcaaa4;">Progresso do Crescimento:</label>
+        <div class="progresso-crescimento">
+            <div class="barra-progresso" style="width: 45%;"></div> 
+            <div class="texto-progresso">45%</div>
+        </div>
+        <div class="status-pragas">
+            <label>Segurança Biológica:</label>
+            <span class="badge-protecao protegido">Protegido</span>
+        </div>
+    </div>
+</div>
 
                 <div id="painel-acoes">
                     <h3>Sua Vez! Escolha uma ação:</h3>
