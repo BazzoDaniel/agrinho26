@@ -15,7 +15,7 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     
-    color: #f5f5f5; 
+    color: #f5f5f5; /* Mudado para uma cor geral clara para contrastar com o tema escuro/madeira */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -23,10 +23,10 @@ body {
     padding: 15px;
 }
 
-/* Container Principal do Jogo - Expandido para computadores (Modo Ultra-Wide) */
+/* Container Principal do Jogo (Apenas envelopa a estrutura) */
 #game-container {
     width: 100%;
-    max-width: 1200px; /* Esticado para os lados para caber a plantação */
+    max-width: 800px; 
     border-radius: 16px;
     display: flex;
     flex-direction: column;
@@ -35,7 +35,7 @@ body {
 
 h1 {
     text-align: center;
-    color: #ffb74d; 
+    color: #ffb74d; /* Cor de ouro/colheita para harmonizar com o lobby */
     font-size: 1.8rem;
     margin-bottom: 5px;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
@@ -63,8 +63,9 @@ h1 {
     z-index: 1000;
 }
 
+/* Caixa Principal do Menu (Efeito rústico sólido) */
 .lobby-card {
-    background: #2e221a; 
+    background: #2e221a; /* Marrom escuro rústico sólido para bloquear fantasmas no fundo */
     border: 4px solid #8d6e63;
     border-radius: 16px;
     width: 100%;
@@ -105,6 +106,7 @@ h1 {
     margin-bottom: 25px;
 }
 
+/* Caixa de Instruções Interna */
 .painel-instrucoes {
     background: rgba(255, 255, 255, 0.06);
     border-left: 4px solid #81c784; 
@@ -132,6 +134,7 @@ h1 {
     line-height: 1.4;
 }
 
+/* Formulário e Input */
 .lobby-form {
     display: flex;
     flex-direction: column;
@@ -176,6 +179,7 @@ h1 {
     box-shadow: 0 0 8px rgba(255, 183, 77, 0.4);
 }
 
+/* Botão Jogar Principal */
 .btn-jogar {
     background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
     color: white;
@@ -201,6 +205,18 @@ h1 {
     background: linear-gradient(135deg, #66bb6a 0%, #388e3c 100%);
 }
 
+.btn-jogar:active {
+    transform: translateY(0);
+}
+
+.seta-btn {
+    transition: transform 0.2s;
+}
+
+.btn-jogar:hover .seta-btn {
+    transform: translateX(4px);
+}
+
 .lobby-footer {
     display: flex;
     justify-content: space-between;
@@ -211,7 +227,10 @@ h1 {
     color: #8d6e63;
 }
 
-.lobby-footer p { margin: 0; }
+.lobby-footer p {
+    margin: 0;
+}
+
 .versao-jogo {
     background: #4e342e;
     padding: 2px 6px;
@@ -220,33 +239,33 @@ h1 {
 }
 
 /* ==========================================================================
-   3. TABLEIRO DO JOGO (Tema Escuro Expandido em 3 Colunas)
+   3. TABLEIRO DO JOGO (Estilizado em Marrom Claro Semitransparente)
    ========================================================================== */
 #game-board {
-    background: rgba(38, 26, 22, 0.96); /* Marrom bem mais escuro para destacar os botões */
-    backdrop-filter: blur(8px);
-    border: 3px solid #5d4037;
+    background: rgba(93, 64, 55, 0.92); /* Marrom claro amadeirado elegante com translucidez */
+    backdrop-filter: blur(6px);
+    border: 3px solid #8d6e63;
     border-radius: 16px;
-    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.65);
-    padding: 28px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    padding: 24px;
     width: 100%;
 }
 
 /* Painel de Informações Superiores */
 #painel-superior {
-    background: rgba(19, 13, 11, 0.6); 
+    background: rgba(46, 34, 26, 0.6); /* Fundo marrom escuro sutil */
     padding: 15px;
     border-radius: 10px;
-    border-left: 5px solid #ffb74d; 
+    border-left: 5px solid #ffb74d; /* Detalhe em ouro */
     text-align: center;
-    margin-bottom: 25px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 #status {
     font-weight: bold;
     font-size: 1.1rem;
-    color: #ffb74d; 
+    color: #ffb74d; /* Texto destacado em dourado */
 }
 
 #clima-atual {
@@ -257,72 +276,71 @@ h1 {
 /* Painel de Jogadores Conectados */
 #jogadores-conectados {
     margin-top: 15px;
-    max-height: 120px;
+    max-height: 150px;
     overflow-y: auto; 
-    background: rgba(0, 0, 0, 0.3); 
+    background: rgba(29, 20, 15, 0.5); /* Recipiente escuro integrado */
     padding: 10px;
     border-radius: 8px;
     font-size: 0.9rem;
     text-align: left;
-    border: 1px solid #4e342e;
+    border: 1px solid #5d4037;
     color: #efebe9;
 }
 
-/* Estrutura do Tabuleiro Esticada (Grid com 3 Colunas no PC) */
+/* Estrutura do Tabuleiro (Grid Dinâmico) */
 #tabuleiro-container {
     display: grid;
-    grid-template-columns: 1fr 1.1fr 1.2fr; /* Lado esquerdo dados, Meio botões, Direita plantação */
-    gap: 25px;
+    grid-template-columns: 1fr 1.2fr; 
+    gap: 20px;
     align-items: start;
 }
 
-/* Bloco de Informações da Fazenda (Coluna 1) */
+/* Bloco de Informações da Fazenda */
 #info-fazenda {
-    background: rgba(19, 13, 11, 0.7); 
-    border: 2px solid #5d4037;
-    padding: 18px;
+    background: rgba(46, 34, 26, 0.85); /* Fundo rústico escuro contrastante */
+    border: 2px solid #a1887f;
+    padding: 15px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    gap: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 #info-fazenda h3 {
     color: #ffb74d;
-    border-bottom: 2px solid #4e342e;
-    padding-bottom: 6px;
-    font-size: 1.1rem;
+    border-bottom: 2px solid #5d4037;
+    padding-bottom: 5px;
 }
 
 #info-fazenda p {
     font-size: 1rem;
     font-weight: 500;
-    color: #e0d4d0;
+    color: #efebe9;
 }
 
 #info-fazenda span {
     font-weight: bold;
-    color: #81c784; 
+    color: #81c784; /* Valores numéricos ganham um tom verde saudável e legível */
 }
 
-/* Grid de Botões de Ação (Coluna 2) */
+/* Grid de Botões de Ação */
 #painel-acoes {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 #painel-acoes h3 {
     font-size: 1.1rem;
     color: #ffb74d;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
 }
 
-/* Botões Customizados Base (Mantidos idênticos, brilhando contra o fundo escuro) */
+/* Botões Customizados Base */
 .btn-acao {
     width: 100%;
-    padding: 14px 16px;
+    padding: 12px 15px;
     font-size: 0.95rem;
     font-weight: bold;
     border: none;
@@ -331,14 +349,14 @@ h1 {
     text-align: left;
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: #ffffff; 
+    gap: 8px;
+    color: #ffffff; /* Letras brancas para legibilidade excelente */
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
     transition: all 0.15s ease;
 }
 
 .btn-acao:not(:disabled):hover {
-    filter: brightness(1.15); 
+    filter: brightness(1.1); /* Brilho em vez de escurecimento para destacar na madeira */
     transform: translateY(-1px);
 }
 
@@ -347,113 +365,31 @@ h1 {
 }
 
 .btn-acao:disabled {
-    background-color: #2e231f !important;
-    color: #5c4d46 !important;
-    border-bottom: 3px solid #1a1311 !important;
+    background-color: #42352f !important;
+    color: #75635c !important;
+    border-bottom: 3px solid #2e231f !important;
     text-shadow: none;
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.6;
     transform: none !important;
 }
 
-/* Cores originais preservadas */
-#btn-plantar { background-color: #a7dfa9; border-bottom: 3px solid #5ca35f; color: #276e2a; }
-#btn-Agrotoxico { background-color: #f0a38b; border-bottom: 3px solid #b77360; color: #c62828; }
-#btn-fertilizar { background-color: #66bde6; border-bottom: 3px solid #4f96f7; color: #0277bd; }
-#btn-colher { background-color: #ffe082; border-bottom: 3px solid #ffb74d; color: #aa6710; }
+/* Botões específicos integrados e harmonizados */
+#btn-plantar { background-color: #388e3c; border-bottom: 3px solid #1b5e20; }
+#btn-Agrotoxico { background-color: #d32f2f; border-bottom: 3px solid #7f1d1d; }
+#btn-fertilizar { background-color: #1976d2; border-bottom: 3px solid #0d47a1; }
+#btn-colher { background-color: #f57c00; border-bottom: 3px solid #a64f00; }
 
+/* Botão Comprar Fertilizar - Ajustado para a paleta marrom */
 #btn-comprar-fertilizante {
-    background-color: #002244; 
-    color: #ffffff;            
-    border-bottom: 3px solid #001122; 
-}
-#btn-comprar-fertilizante:not(:disabled):hover { background-color: #003366; filter: none; }
-
-/* Novo Painel de Visualização da Plantação (Coluna 3) */
-.painel-plantacao {
-    background: rgba(19, 13, 11, 0.8);
-    border: 2px solid #8d6e63;
-    border-radius: 12px;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    background-color: #4e342e; 
+    border-bottom: 3px solid #2e1c19; 
+    border: 1px solid #8d6e63;
 }
 
-.painel-plantacao h3 {
-    color: #ffb74d;
-    border-bottom: 2px solid #5d4037;
-    padding-bottom: 6px;
-    font-size: 1.1rem;
-}
-
-/* Barra de progresso do Crescimento */
-.progresso-crescimento {
-    background: #2e231f;
-    border-radius: 20px;
-    width: 100%;
-    height: 22px;
-    overflow: hidden;
-    border: 1px solid #5d4037;
-    position: relative;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-}
-
-.barra-progresso {
-    background: linear-gradient(90deg, #4caf50, #81c784);
-    height: 100%;
-    width: 0%; /* Controlado dinamicamente via JS (ex: mudar para o nível atual) */
-    transition: width 0.5s ease-in-out;
-}
-
-.texto-progresso {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    font-size: 11px;
-    font-weight: bold;
-    color: #ffffff;
-    line-height: 20px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-}
-
-/* Status de Pragas e Proteção */
-.status-pragas {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #4e342e;
-}
-
-.status-pragas label {
-    font-size: 13px;
-    color: #bcaaa4;
-    font-weight: 600;
-}
-
-/* Badge dinâmico de proteção */
-.badge-protecao {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.badge-protecao.protegido {
-    background-color: rgba(46, 125, 50, 0.25);
-    color: #81c784;
-    border: 1px solid #4caf50;
-}
-
-.badge-protecao.vulneravel {
-    background-color: rgba(198, 40, 40, 0.25);
-    color: #ef9a9a;
-    border: 1px solid #e53935;
+#btn-comprar-fertilizante:not(:disabled):hover {
+    background-color: #5d4037; 
+    filter: none; 
 }
 
 /* ==========================================================================
@@ -462,16 +398,16 @@ h1 {
 #popup-container {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.65);
+    background: rgba(0,0,0,0.6);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 999;
     padding: 20px;
 }
 
 #popup-box {
-    background: #2e221a;
+    background: #3e2723;
     border: 3px solid #8d6e63;
     color: #ffffff;
     padding: 24px;
@@ -479,8 +415,13 @@ h1 {
     max-width: 400px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     animation: popupEntrada 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#popup-icone {
+    font-size: 3rem;
+    margin-bottom: 10px;
 }
 
 #btn-popup-ok {
@@ -494,15 +435,16 @@ h1 {
     cursor: pointer;
 }
 
+/* Botão de Pause Quadrado e Pequeno */
 .btn-pause-quadrado {
     position: fixed;
     top: 15px;
     left: 15px;
     width: 40px;
     height: 40px;
-    background-color: #1a1311; 
+    background-color: #2e221a; 
     color: #ffb74d;
-    border: 2px solid #5d4037;
+    border: 2px solid #8d6e63;
     border-radius: 6px; 
     font-size: 20px;
     cursor: pointer;
@@ -512,11 +454,18 @@ h1 {
     justify-content: center;
     transition: background 0.2s;
 }
-.btn-pause-quadrado:hover { background-color: #3e2723; }
 
+.btn-pause-quadrado:hover {
+    background-color: #5d4037;
+}
+
+/* Janela/Fundo do Menu de Pause */
 .modal-pause {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-color: rgba(0, 0, 0, 0.75); 
     display: flex;
     align-items: center;
@@ -524,8 +473,9 @@ h1 {
     z-index: 9999;
 }
 
+/* Caixa interna do Menu */
 .conteudo-pause {
-    background-color: #2e221a;
+    background-color: #3e2723;
     padding: 30px;
     border-radius: 12px;
     border: 3px solid #8d6e63;
@@ -534,9 +484,19 @@ h1 {
     box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.6);
     color: #ffffff;
 }
-.conteudo-pause h2 { color: #ffb74d; }
-.conteudo-pause p { color: #d7ccc8; }
 
+.conteudo-pause h2 {
+    color: #ffb74d;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.conteudo-pause p {
+    color: #d7ccc8;
+    margin-bottom: 20px;
+}
+
+/* Botões de dentro do menu */
 .btn-menu-opcao {
     display: block;
     width: 100%;
@@ -547,9 +507,26 @@ h1 {
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
+    transition: background 0.2s;
 }
-#btn-retomar { background-color: #4caf50; color: white; }
-.btn-desistir { background-color: #e53935; color: white; }
+
+#btn-retomar {
+    background-color: #4caf50;
+    color: white;
+}
+
+#btn-retomar:hover {
+    background-color: #43a047;
+}
+
+.btn-desistir {
+    background-color: #e53935;
+    color: white;
+}
+
+.btn-desistir:hover {
+    background-color: #d32f2f;
+}
 
 .watermark {
     position: fixed;
@@ -565,11 +542,17 @@ h1 {
 }
 
 /* ==========================================================================
-   5. ADAPTAÇÃO PARA CELULARES (MEDIA QUERIES)
+   5. ANIMAÇÕES E RESPONSIVIDADE (MEDIA QUERIES)
    ========================================================================== */
 @keyframes fadeInMenu {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 @keyframes popupEntrada {
@@ -577,8 +560,7 @@ h1 {
     to { transform: scale(1); opacity: 1; }
 }     
 
-/* Reconfiguração estrutural automática para Celulares e Tablets */
-@media (max-width: 950px) {
+@media (max-width: 680px) {
     body {
         padding: 8px;
     }
@@ -591,10 +573,9 @@ h1 {
         font-size: 1.5rem;
     }
 
-    /* Transforma as 3 colunas laterais em uma única coluna vertical empilhada */
     #tabuleiro-container {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 15px;
     }
 
     .btn-acao {
