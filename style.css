@@ -241,7 +241,7 @@ h1 {
    3. TABLEIRO DO JOGO (Só aparece após o login)
    ========================================================================== */
 #game-board {
-    background: #5d4037; /* O fundo branco e blur foram movidos para cá */
+    background: #ffffff; /* O fundo branco e blur foram movidos para cá */
     backdrop-filter: blur(4px);
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
