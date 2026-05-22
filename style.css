@@ -15,7 +15,7 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     
-    color: #333;
+    color: #f5f5f5; /* Mudado para uma cor geral clara para contrastar com o tema escuro/madeira */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -35,9 +35,10 @@ body {
 
 h1 {
     text-align: center;
-    color: #2e7d32;
+    color: #ffb74d; /* Cor de ouro/colheita para harmonizar com o lobby */
     font-size: 1.8rem;
     margin-bottom: 5px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Classes Utilitárias */
@@ -238,35 +239,38 @@ h1 {
 }
 
 /* ==========================================================================
-   3. TABLEIRO DO JOGO (Só aparece após o login)
+   3. TABLEIRO DO JOGO (Estilizado em Marrom Claro Semitransparente)
    ========================================================================== */
 #game-board {
-    background: #ffffff; /* O fundo branco e blur foram movidos para cá */
-    backdrop-filter: blur(4px);
+    background: rgba(93, 64, 55, 0.92); /* Marrom claro amadeirado elegante com translucidez */
+    backdrop-filter: blur(6px);
+    border: 3px solid #8d6e63;
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
     padding: 24px;
     width: 100%;
 }
 
 /* Painel de Informações Superiores */
 #painel-superior {
-    background: #e8f5e9;
+    background: rgba(46, 34, 26, 0.6); /* Fundo marrom escuro sutil */
     padding: 15px;
     border-radius: 10px;
-    border-left: 5px solid #4caf50;
+    border-left: 5px solid #ffb74d; /* Detalhe em ouro */
     text-align: center;
     margin-bottom: 20px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 #status {
     font-weight: bold;
     font-size: 1.1rem;
-    color: #1b5e20;
+    color: #ffb74d; /* Texto destacado em dourado */
 }
 
 #clima-atual {
     margin-top: 8px;
+    color: #e0d4d0;
 }
 
 /* Painel de Jogadores Conectados */
@@ -274,12 +278,13 @@ h1 {
     margin-top: 15px;
     max-height: 150px;
     overflow-y: auto; 
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(29, 20, 15, 0.5); /* Recipiente escuro integrado */
     padding: 10px;
     border-radius: 8px;
     font-size: 0.9rem;
     text-align: left;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #5d4037;
+    color: #efebe9;
 }
 
 /* Estrutura do Tabuleiro (Grid Dinâmico) */
@@ -292,29 +297,31 @@ h1 {
 
 /* Bloco de Informações da Fazenda */
 #info-fazenda {
-    background: #fffde7;
-    border: 2px solid #fff59d;
+    background: rgba(46, 34, 26, 0.85); /* Fundo rústico escuro contrastante */
+    border: 2px solid #a1887f;
     padding: 15px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 #info-fazenda h3 {
-    color: #f57f17;
-    border-bottom: 2px solid #fff59d;
+    color: #ffb74d;
+    border-bottom: 2px solid #5d4037;
     padding-bottom: 5px;
 }
 
 #info-fazenda p {
     font-size: 1rem;
     font-weight: 500;
+    color: #efebe9;
 }
 
 #info-fazenda span {
     font-weight: bold;
-    color: #2e7d32;
+    color: #81c784; /* Valores numéricos ganham um tom verde saudável e legível */
 }
 
 /* Grid de Botões de Ação */
@@ -326,7 +333,7 @@ h1 {
 
 #painel-acoes h3 {
     font-size: 1.1rem;
-    color: #37474f;
+    color: #ffb74d;
     margin-bottom: 5px;
 }
 
@@ -335,7 +342,7 @@ h1 {
     width: 100%;
     padding: 12px 15px;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: bold;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -343,46 +350,45 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
-    background-color: #f5f5f5;
-    color: #333;
-    border-bottom: 3px solid #ccc;
-    transition: all 0.1s ease;
+    color: #ffffff; /* Letras brancas para legibilidade excelente */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+    transition: all 0.15s ease;
 }
 
 .btn-acao:not(:disabled):hover {
-    filter: brightness(0.95);
+    filter: brightness(1.1); /* Brilho em vez de escurecimento para destacar na madeira */
     transform: translateY(-1px);
 }
 
 .btn-acao:not(:disabled):active {
-    transform: translateY(2px);
-    border-bottom-width: 1px;
+    transform: translateY(1.5px);
 }
 
 .btn-acao:disabled {
-    background-color: #e0e0e0;
-    color: #9e9e9e;
-    border-bottom-color: #bdbdbd;
+    background-color: #42352f !important;
+    color: #75635c !important;
+    border-bottom: 3px solid #2e231f !important;
+    text-shadow: none;
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.6;
     transform: none !important;
 }
 
-/* Botões específicos coloridos */
-#btn-plantar { background-color: #a7dfa9; border-bottom-color: #5ca35f; color: #276e2a; }
-#btn-Agrotoxico { background-color: #f0a38b; border-bottom-color: #b77360; color: #c62828; }
-#btn-fertilizar { background-color: #66bde6; border-bottom-color: #4f96f7; color: #0277bd; }
-#btn-colher { background-color: #ffe082; border-bottom-color: #ffb74d; color: #aa6710; }
+/* Botões específicos integrados e harmonizados */
+#btn-plantar { background-color: #388e3c; border-bottom: 3px solid #1b5e20; }
+#btn-Agrotoxico { background-color: #d32f2f; border-bottom: 3px solid #7f1d1d; }
+#btn-fertilizar { background-color: #1976d2; border-bottom: 3px solid #0d47a1; }
+#btn-colher { background-color: #f57c00; border-bottom: 3px solid #a64f00; }
 
-/* Botão Comprar Fertilizar - Azul Escuro Customizado */
+/* Botão Comprar Fertilizar - Ajustado para a paleta marrom */
 #btn-comprar-fertilizante {
-    background-color: #002244; 
-    color: #ffffff;            
-    border-bottom-color: #001122; 
+    background-color: #4e342e; 
+    border-bottom: 3px solid #2e1c19; 
+    border: 1px solid #8d6e63;
 }
 
 #btn-comprar-fertilizante:not(:disabled):hover {
-    background-color: #003366; 
+    background-color: #5d4037; 
     filter: none; 
 }
 
@@ -392,7 +398,7 @@ h1 {
 #popup-container {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.6);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -401,13 +407,15 @@ h1 {
 }
 
 #popup-box {
-    background: white;
+    background: #3e2723;
+    border: 3px solid #8d6e63;
+    color: #ffffff;
     padding: 24px;
     border-radius: 16px;
     max-width: 400px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     animation: popupEntrada 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -419,7 +427,7 @@ h1 {
 #btn-popup-ok {
     margin-top: 15px;
     padding: 10px 24px;
-    background: #2e7d32;
+    background: #4caf50;
     color: white;
     border: none;
     border-radius: 6px;
@@ -434,8 +442,8 @@ h1 {
     left: 15px;
     width: 40px;
     height: 40px;
-    background-color: #3e2723; 
-    color: white;
+    background-color: #2e221a; 
+    color: #ffb74d;
     border: 2px solid #8d6e63;
     border-radius: 6px; 
     font-size: 20px;
@@ -458,7 +466,7 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); 
+    background-color: rgba(0, 0, 0, 0.75); 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -467,24 +475,24 @@ h1 {
 
 /* Caixa interna do Menu */
 .conteudo-pause {
-    background-color: #efebe9;
+    background-color: #3e2723;
     padding: 30px;
     border-radius: 12px;
-    border: 3px solid #5d4037;
+    border: 3px solid #8d6e63;
     text-align: center;
     min-width: 280px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
-    font-family: 'Arial', sans-serif;
+    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.6);
+    color: #ffffff;
 }
 
 .conteudo-pause h2 {
-    color: #5d4037;
+    color: #ffb74d;
     margin-top: 0;
     margin-bottom: 10px;
 }
 
 .conteudo-pause p {
-    color: #795548;
+    color: #d7ccc8;
     margin-bottom: 20px;
 }
 
@@ -527,7 +535,7 @@ h1 {
     font-family: 'Arial', sans-serif;
     font-size: 14px;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.65); 
+    color: rgba(255, 255, 255, 0.55); 
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); 
     pointer-events: none; 
     z-index: 9999; 
