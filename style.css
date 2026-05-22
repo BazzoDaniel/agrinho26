@@ -292,6 +292,19 @@ h1 {
     transform: scale(0.95);
 }
 
+.watermark {
+    position: fixed;
+    bottom: 15px;
+    right: 20px;
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.65); /* Cor branca com 65% de transparência */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); /* Sombra preta para dar leitura em qualquer fundo */
+    pointer-events: none; /* Garante que o jogador consiga clicar no que estiver por baixo dela */
+    z-index: 9999; /* Fica por cima dos fundos e painéis */
+}
+
 /* --- ADAPTAÇÃO PARA CELULARES (MEDIA QUERIES) --- */
 @media (max-width: 680px) {
     body {
