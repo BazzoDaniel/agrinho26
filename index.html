@@ -12,10 +12,43 @@
 
         <h1>🌾Safra Imprevisível🌾</h1>
 
-        <div id="lobby">
-            <input type="text" id="player-name" placeholder="Seu nome do produtor">
-            <button id="btn-entrar">Entrar na Fazenda</button>
+        <div id="lobby" class="lobby-container">
+    <div class="lobby-card">
+        <div class="lobby-header">
+            <span class="emoji-header">🌾</span>
+            <h1>Safra Imprevisível</h1>
+            <span class="emoji-header">🚜</span>
         </div>
+        
+        <p class="lobby-subtitle">O simulador de gerenciamento agrícola estratégico em tempo real.</p>
+        
+        <div class="painel-instrucoes">
+            <h3>👨‍🌾 Como Jogar:</h3>
+            <ul>
+                <li>Plante sementes e cuide da umidade do seu solo.</li>
+                <li>Fique atento às mudanças climáticas repentinas e pragas.</li>
+                <li>Use defensivos e fertilizantes com inteligência estratégica.</li>
+                <li>Alcance <b>250 pontos</b> primeiro para dominar o mercado e vencer!</li>
+            </ul>
+        </div>
+
+        <div class="lobby-form">
+            <label for="player-name">Identificação do Produtor:</label>
+            <div class="input-wrapper">
+                <span class="input-icon">👤</span>
+                <input type="text" id="player-name" placeholder="Digite seu nome ou apelido..." maxlength="15" autocomplete="off">
+            </div>
+            <button id="btn-entrar" class="btn-jogar">
+                Entrar na Fazenda <span class="seta-btn">➔</span>
+            </button>
+        </div>
+
+        <div class="lobby-footer">
+            <p>Conectado ao Firebase Realtime Server</p>
+            <span class="versao-jogo">v2.1.0</span>
+        </div>
+    </div>
+</div>
 
         <div id="game-board" class="hidden">
 
