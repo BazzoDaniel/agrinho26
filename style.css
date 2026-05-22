@@ -242,7 +242,7 @@ h1 {
    3. TABLEIRO DO JOGO (Estilizado em Marrom Claro Semitransparente)
    ========================================================================== */
 #game-board {
-    background: rgba(93, 64, 55, 0.92); /* Marrom claro amadeirado elegante com translucidez */
+    background: rgba(59, 21, 9, 0.92); /* Marrom claro amadeirado elegante com translucidez */
     backdrop-filter: blur(6px);
     border: 3px solid #8d6e63;
     border-radius: 16px;
