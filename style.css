@@ -15,7 +15,7 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     
-    color: #f5f5f5; /* Fonte geral clara para contrastar com o tema escuro */
+    color: #333;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -23,7 +23,7 @@ body {
     padding: 15px;
 }
 
-/* Container Principal do Jogo */
+/* Container Principal do Jogo (Apenas envelopa a estrutura) */
 #game-container {
     width: 100%;
     max-width: 800px; 
@@ -35,10 +35,9 @@ body {
 
 h1 {
     text-align: center;
-    color: #ffb74d; /* Tom de ouro/colheita */
+    color: #2e7d32;
     font-size: 1.8rem;
     margin-bottom: 5px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Classes Utilitárias */
@@ -63,8 +62,9 @@ h1 {
     z-index: 1000;
 }
 
+/* Caixa Principal do Menu (Efeito rústico sólido) */
 .lobby-card {
-    background: #2e221a; /* Marrom escuro rústico sólido */
+    background: #2e221a; /* Marrom escuro rústico sólido para bloquear fantasmas no fundo */
     border: 4px solid #8d6e63;
     border-radius: 16px;
     width: 100%;
@@ -105,6 +105,7 @@ h1 {
     margin-bottom: 25px;
 }
 
+/* Caixa de Instruções Interna */
 .painel-instrucoes {
     background: rgba(255, 255, 255, 0.06);
     border-left: 4px solid #81c784; 
@@ -132,6 +133,7 @@ h1 {
     line-height: 1.4;
 }
 
+/* Formulário e Input */
 .lobby-form {
     display: flex;
     flex-direction: column;
@@ -176,6 +178,7 @@ h1 {
     box-shadow: 0 0 8px rgba(255, 183, 77, 0.4);
 }
 
+/* Botão Jogar Principal */
 .btn-jogar {
     background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
     color: white;
@@ -201,6 +204,18 @@ h1 {
     background: linear-gradient(135deg, #66bb6a 0%, #388e3c 100%);
 }
 
+.btn-jogar:active {
+    transform: translateY(0);
+}
+
+.seta-btn {
+    transition: transform 0.2s;
+}
+
+.btn-jogar:hover .seta-btn {
+    transform: translateX(4px);
+}
+
 .lobby-footer {
     display: flex;
     justify-content: space-between;
@@ -211,7 +226,10 @@ h1 {
     color: #8d6e63;
 }
 
-.lobby-footer p { margin: 0; }
+.lobby-footer p {
+    margin: 0;
+}
+
 .versao-jogo {
     background: #4e342e;
     padding: 2px 6px;
@@ -220,93 +238,86 @@ h1 {
 }
 
 /* ==========================================================================
-   3. TABLEIRO DO JOGO (Estilizado em Marrom Claro Semitransparente)
+   3. TABLEIRO DO JOGO (Só aparece após o login)
    ========================================================================== */
 #game-board {
-    background: rgba(78, 52, 46, 0.92); /* Marrom claro amadeirado com transparência elegante */
-    backdrop-filter: blur(6px);
-    border: 3px solid #8d6e63;
+    background: #ffffff; /* O fundo branco e blur foram movidos para cá */
+    backdrop-filter: blur(4px);
     border-radius: 16px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     padding: 24px;
     width: 100%;
 }
 
-/* Painel do Clima e Turno Superior */
+/* Painel de Informações Superiores */
 #painel-superior {
-    background: rgba(46, 34, 26, 0.6);
+    background: #e8f5e9;
     padding: 15px;
     border-radius: 10px;
-    border-left: 5px solid #ffb74d;
+    border-left: 5px solid #4caf50;
     text-align: center;
     margin-bottom: 20px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 #status {
     font-weight: bold;
     font-size: 1.1rem;
-    color: #ffb74d; /* Destaque em ouro para as mensagens de turno */
+    color: #1b5e20;
 }
 
 #clima-atual {
     margin-top: 8px;
-    color: #d7ccc8;
 }
 
-/* Painel de Lista de Jogadores */
+/* Painel de Jogadores Conectados */
 #jogadores-conectados {
     margin-top: 15px;
-    max-height: 160px;
+    max-height: 150px;
     overflow-y: auto; 
-    background: rgba(29, 20, 15, 0.5);
-    padding: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
     border-radius: 8px;
     font-size: 0.9rem;
     text-align: left;
-    border: 1px solid #5d4037;
-    color: #e0d4d0;
+    border: 1px solid #e0e0e0;
 }
 
-/* Grid Dinâmico do Jogo */
+/* Estrutura do Tabuleiro (Grid Dinâmico) */
 #tabuleiro-container {
     display: grid;
-    grid-template-columns: 1fr 1.1fr; 
+    grid-template-columns: 1fr 1.2fr; 
     gap: 20px;
     align-items: start;
 }
 
-/* Bloco de Atributos/Recursos Internos (Lado Esquerdo) */
+/* Bloco de Informações da Fazenda */
 #info-fazenda {
-    background: rgba(46, 34, 26, 0.85);
-    border: 2px solid #a1887f;
-    padding: 18px;
+    background: #fffde7;
+    border: 2px solid #fff59d;
+    padding: 15px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    gap: 10px;
 }
 
 #info-fazenda h3 {
-    color: #ffb74d;
-    border-bottom: 2px solid #5d4037;
+    color: #f57f17;
+    border-bottom: 2px solid #fff59d;
     padding-bottom: 5px;
-    font-size: 1.1rem;
 }
 
 #info-fazenda p {
     font-size: 1rem;
     font-weight: 500;
-    color: #efebe9;
 }
 
 #info-fazenda span {
     font-weight: bold;
-    color: #81c784; /* Valores numéricos ganham destaque verde suave */
+    color: #2e7d32;
 }
 
-/* Painel de Botões de Ação (Lado Direito) */
+/* Grid de Botões de Ação */
 #painel-acoes {
     display: flex;
     flex-direction: column;
@@ -315,93 +326,88 @@ h1 {
 
 #painel-acoes h3 {
     font-size: 1.1rem;
-    color: #ffb74d;
+    color: #37474f;
     margin-bottom: 5px;
 }
 
-/* Estilização Avançada de Botões de Ação Harmonizados */
+/* Botões Customizados Base */
 .btn-acao {
     width: 100%;
-    padding: 13px 16px;
+    padding: 12px 15px;
     font-size: 0.95rem;
-    font-weight: bold;
+    font-weight: 600;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     text-align: left;
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: #ffffff;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-    transition: all 0.15s ease;
+    gap: 8px;
+    background-color: #f5f5f5;
+    color: #333;
+    border-bottom: 3px solid #ccc;
+    transition: all 0.1s ease;
 }
 
 .btn-acao:not(:disabled):hover {
-    filter: brightness(1.12);
+    filter: brightness(0.95);
     transform: translateY(-1px);
 }
 
 .btn-acao:not(:disabled):active {
-    transform: translateY(1.5px);
+    transform: translateY(2px);
+    border-bottom-width: 1px;
 }
 
 .btn-acao:disabled {
-    background-color: #42352f !important;
-    color: #75635c !important;
-    border-bottom: 3px solid #2e231f !important;
-    text-shadow: none;
+    background-color: #e0e0e0;
+    color: #9e9e9e;
+    border-bottom-color: #bdbdbd;
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.7;
+    transform: none !important;
 }
 
-/* Cores Harmonizadas dos Botões Integradas à Madeira Clara */
-#btn-plantar { 
-    background-color: #388e3c; 
-    border-bottom: 3px solid #1b5e20; 
-}
-#btn-Agrotoxico { 
-    background-color: #d32f2f; 
-    border-bottom: 3px solid #7f1d1d; 
-}
-#btn-fertilizar { 
-    background-color: #1976d2; 
-    border-bottom: 3px solid #0d47a1; 
-}
-#btn-colher { 
-    background-color: #f57c00; 
-    border-bottom: 3px solid #a64f00; 
-}
+/* Botões específicos coloridos */
+#btn-plantar { background-color: #a7dfa9; border-bottom-color: #5ca35f; color: #276e2a; }
+#btn-Agrotoxico { background-color: #f0a38b; border-bottom-color: #b77360; color: #c62828; }
+#btn-fertilizar { background-color: #66bde6; border-bottom-color: #4f96f7; color: #0277bd; }
+#btn-colher { background-color: #ffe082; border-bottom-color: #ffb74d; color: #aa6710; }
+
+/* Botão Comprar Fertilizar - Azul Escuro Customizado */
 #btn-comprar-fertilizante {
-    background-color: #5d4037; 
-    border-bottom: 3px solid #3e2723;
-    border: 1px solid #8d6e63;
+    background-color: #002244; 
+    color: #ffffff;            
+    border-bottom-color: #001122; 
+}
+
+#btn-comprar-fertilizante:not(:disabled):hover {
+    background-color: #003366; 
+    filter: none; 
 }
 
 /* ==========================================================================
-   4. POP-UPS E ADICIONAIS
+   4. POP-UPS, MENUS DE PAUSE E ADICIONAIS
    ========================================================================== */
 #popup-container {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.65);
+    background: rgba(0,0,0,0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 99999;
+    z-index: 999;
     padding: 20px;
 }
 
 #popup-box {
-    background: #3e2723;
-    border: 3px solid #8d6e63;
-    color: #fff;
-    padding: 28px;
+    background: white;
+    padding: 24px;
     border-radius: 16px;
     max-width: 400px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     animation: popupEntrada 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -411,25 +417,25 @@ h1 {
 }
 
 #btn-popup-ok {
-    margin-top: 18px;
-    padding: 11px 28px;
-    background: #4caf50;
+    margin-top: 15px;
+    padding: 10px 24px;
+    background: #2e7d32;
     color: white;
     border: none;
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
+/* Botão de Pause Quadrado e Pequeno */
 .btn-pause-quadrado {
     position: fixed;
     top: 15px;
     left: 15px;
     width: 40px;
     height: 40px;
-    background-color: #2e221a; 
-    color: #ffb74d;
+    background-color: #3e2723; 
+    color: white;
     border: 2px solid #8d6e63;
     border-radius: 6px; 
     font-size: 20px;
@@ -441,32 +447,48 @@ h1 {
     transition: background 0.2s;
 }
 
-.btn-pause-quadrado:hover { background-color: #5d4037; }
+.btn-pause-quadrado:hover {
+    background-color: #5d4037;
+}
 
+/* Janela/Fundo do Menu de Pause */
 .modal-pause {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.75); 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); 
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
 }
 
+/* Caixa interna do Menu */
 .conteudo-pause {
-    background-color: #3e2723;
+    background-color: #efebe9;
     padding: 30px;
     border-radius: 12px;
-    border: 3px solid #8d6e63;
+    border: 3px solid #5d4037;
     text-align: center;
-    min-width: 290px;
-    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.6);
-    color: #fff;
+    min-width: 280px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+    font-family: 'Arial', sans-serif;
 }
 
-.conteudo-pause h2 { color: #ffb74d; margin-bottom: 10px; }
-.conteudo-pause p { color: #d7ccc8; margin-bottom: 20px; }
+.conteudo-pause h2 {
+    color: #5d4037;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
 
+.conteudo-pause p {
+    color: #795548;
+    margin-bottom: 20px;
+}
+
+/* Botões de dentro do menu */
 .btn-menu-opcao {
     display: block;
     width: 100%;
@@ -477,31 +499,52 @@ h1 {
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
-#btn-retomar { background-color: #4caf50; color: white; }
-#btn-retomar:hover { background-color: #43a047; }
-.btn-desistir { background-color: #e53935; color: white; }
-.btn-desistir:hover { background-color: #d32f2f; }
+#btn-retomar {
+    background-color: #4caf50;
+    color: white;
+}
+
+#btn-retomar:hover {
+    background-color: #43a047;
+}
+
+.btn-desistir {
+    background-color: #e53935;
+    color: white;
+}
+
+.btn-desistir:hover {
+    background-color: #d32f2f;
+}
 
 .watermark {
     position: fixed;
     bottom: 15px;
     right: 20px;
+    font-family: 'Arial', sans-serif;
     font-size: 14px;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.55); 
+    color: rgba(255, 255, 255, 0.65); 
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); 
     pointer-events: none; 
     z-index: 9999; 
 }
 
 /* ==========================================================================
-   5. ANIMAÇÕES E RESPONSIVIDADE
+   5. ANIMAÇÕES E RESPONSIVIDADE (MEDIA QUERIES)
    ========================================================================== */
 @keyframes fadeInMenu {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 @keyframes popupEntrada {
@@ -510,7 +553,35 @@ h1 {
 }     
 
 @media (max-width: 680px) {
-    #game-board { padding: 16px; }
-    #tabuleiro-container { grid-template-columns: 1fr; gap: 15px; }
-    .btn-acao { padding: 14px 12px; font-size: 0.9rem; }
+    body {
+        padding: 8px;
+    }
+
+    #game-board {
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    #tabuleiro-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .btn-acao {
+        padding: 14px 12px; 
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #btn-reset-global {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px 14px;
+        font-size: 0.8rem;
+        opacity: 0.9; 
+    }
 }
