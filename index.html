@@ -84,9 +84,18 @@
         </div>
     </div>
 
-    <button id="btn-reset-global" title="Resetar Partida Travada">
-        🔄 Forçar Reset
-    </button>
+    <button id="btn-pause" class="btn-pause-quadrado">☰</button>
+
+<div id="menu-pause" class="modal-pause hidden">
+    <div class="conteudo-pause">
+        <h2>Jogo Pausado</h2>
+        <p>O que deseja fazer?</p>
+        
+        <button id="btn-retomar" class="btn-menu-opcao">Voltar ao Jogo</button>
+        
+        <button id="btn-reset-global" class="btn-menu-opcao btn-desistir">Desistir da Partida</button>
+    </div>
+</div>
 
     <audio id="musica-fazenda" src="musica.mp3" loop></audio>
 
@@ -94,7 +103,5 @@
 
     <div class="watermark">By BazzoDaniel</div>
 
-</body>
-</html>
 </body>
 </html>

@@ -262,34 +262,102 @@ h1 {
     display: none !important;
 }
 
-/* Botão Reset Flutuante Fixo no Canto Inferior Direito */
-#btn-reset-global {
+/* Botão de Pause Quadrado e Pequeno */
+.btn-pause-quadrado {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999; /* Fica por cima de absolutamente tudo, até dos pop-ups */
-    background-color: #d84315; /* Laranja escuro/alerta */
+    top: 15px;
+    left: 15px;
+    width: 40px;
+    height: 40px;
+    background-color: #3e2723; /* Marrom escuro rústico */
     color: white;
-    border: none;
-    padding: 12px 18px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    border-radius: 50px; /* Estilo pílula/arredondado */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 2px solid #8d6e63;
+    border-radius: 6px; /* Levemente arredondado para acabamento, mas mantém o aspecto quadrado */
+    font-size: 20px;
     cursor: pointer;
+    z-index: 10000;
     display: flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
+    justify-content: center;
+    transition: background 0.2s;
 }
 
-#btn-reset-global:hover {
-    background-color: #bf360c;
-    transform: scale(1.05);
+.btn-pause-quadrado:hover {
+    background-color: #5d4037;
 }
 
-#btn-reset-global:active {
-    transform: scale(0.95);
+/* Janela/Fundo do Menu de Pause */
+.modal-pause {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Fundo escurecido */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Caixa interna do Menu */
+.conteudo-pause {
+    background-color: #efebe9;
+    padding: 30px;
+    border-radius: 12px;
+    border: 3px solid #5d4037;
+    text-align: center;
+    min-width: 280px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+    font-family: 'Arial', sans-serif;
+}
+
+.conteudo-pause h2 {
+    color: #5d4037;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.conteudo-pause p {
+    color: #795548;
+    margin-bottom: 20px;
+}
+
+/* Botões de dentro do menu */
+.btn-menu-opcao {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#btn-retomar {
+    background-color: #4caf50;
+    color: white;
+}
+
+#btn-retomar:hover {
+    background-color: #43a047;
+}
+
+.btn-desistir {
+    background-color: #e53935;
+    color: white;
+}
+
+.btn-desistir:hover {
+    background-color: #d32f2f;
+}
+
+/* Classe utilitária para esconder elementos */
+.hidden {
+    display: none !important;
 }
 
 .watermark {

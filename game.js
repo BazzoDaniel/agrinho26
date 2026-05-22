@@ -477,6 +477,25 @@ function checarDegradacaoSolo() {
     }
 }
 
+// --- CONTROLE DO MENU DE PAUSE ---
+const btnPause = document.getElementById('btn-pause');
+const menuPause = document.getElementById('menu-pause');
+const btnRetomar = document.getElementById('btn-retomar');
+
+// Abre o menu de pause ao clicar no botão quadrado ☰
+if (btnPause && menuPause) {
+    btnPause.addEventListener('click', () => {
+        menuPause.classList.remove('hidden');
+    });
+}
+
+// Fecha o menu de pause ao clicar em Voltar ao Jogo
+if (btnRetomar && menuPause) {
+    btnRetomar.addEventListener('click', () => {
+        menuPause.classList.add('hidden');
+    });
+}
+
 function checarInfeccaoSoloPorTempo() {
     if (meuSolo < 55 && estagioLavoura !== "vazio" && turnosProtegidosPraga <= 0) {
         estagioLavoura = "vazio"; 
